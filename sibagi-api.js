@@ -67,19 +67,27 @@
   var terpasang = function () {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   };
+  // tombol × = "nanti saja": disembunyikan 3 hari supaya tidak terus menutupi kartu akun di layar Masuk
+  var KUNCI_TUTUP = 'sibagiTutupPasang';
   function tampilTombol() {
     if (tombol || terpasang() || !document.body) return;
-    tombol = document.createElement('button');
+    try { if (Number(localStorage.getItem(KUNCI_TUTUP) || 0) > Date.now()) return; } catch (e) { /* abaikan */ }
+    tombol = document.createElement('div');
     tombol.id = 'btnPasangApp';
-    tombol.type = 'button';
-    tombol.textContent = 'Pasang SIBAGI di HP';
     tombol.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:65;' +
-      'background:#F2A900;color:#16231F;border:0;border-radius:999px;padding:11px 20px;font:700 15px system-ui,sans-serif;' +
-      'box-shadow:0 6px 18px rgba(0,0,0,.2);cursor:pointer';
-    tombol.onclick = function () {
+      'display:flex;align-items:center;background:#F5B400;color:#1A1300;border:1.5px solid #8A6100;border-radius:999px;' +
+      'box-shadow:0 6px 18px rgba(0,0,0,.28);font:700 15px system-ui,sans-serif;white-space:nowrap';
+    tombol.innerHTML = '<button type="button" id="btnPasangYa" style="background:none;border:0;color:inherit;font:inherit;padding:11px 6px 11px 18px;cursor:pointer">' +
+      'Pasang SIBAGI di HP</button><button type="button" id="btnPasangNanti" aria-label="Nanti saja" title="Nanti saja" ' +
+      'style="background:none;border:0;border-left:1px solid rgba(26,19,0,.25);color:inherit;font:700 18px/1 system-ui,sans-serif;padding:9px 14px 9px 10px;cursor:pointer">×</button>';
+    tombol.querySelector('#btnPasangYa').onclick = function () {
       if (!tawaran) return;
       tawaran.prompt();
       tawaran.userChoice.then(function () { tawaran = null; sembunyi(); });
+    };
+    tombol.querySelector('#btnPasangNanti').onclick = function () {
+      try { localStorage.setItem(KUNCI_TUTUP, String(Date.now() + 3 * 864e5)); } catch (e) { /* abaikan */ }
+      sembunyi();
     };
     document.body.appendChild(tombol);
   }

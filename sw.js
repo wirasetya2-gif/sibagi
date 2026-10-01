@@ -1,5 +1,5 @@
 /* SIBAGI RPS: service worker. Tampilan disimpan supaya cepat dibuka; data selalu langsung dari server. */
-var CACHE = 'sibagi-cc8391ddf6';
+var CACHE = 'sibagi-a0a8d3c89d';
 var INTI = ['./', 'index.html', 'sibagi-api.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
