@@ -644,6 +644,29 @@
   .cek-pabrik label { display: flex; gap: 9px; align-items: center; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--line); }
   .cek-pabrik label:first-child { border-top: 0; }
   .cek-pabrik input { width: 18px; height: 18px; accent-color: var(--brand-dark); }
+  /* v1.6 plot per hari, peringatan pabrik khusus mobil Mamah, rekap per pemilik, total & grafik pengeluaran */
+  .hari-plot { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; margin-top: 12px; }
+  .hari-plot button { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 0 5px; border: 1.5px solid var(--line);
+    border-radius: 11px; background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
+  .hari-plot small { font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .hari-plot b { font-size: 17px; line-height: 1.15; }
+  .hari-plot i { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .hari-plot button.ini { border-color: var(--brand-dark); }
+  .hari-plot button.on { background: var(--brand); border-color: var(--brand-dark); box-shadow: 0 2px 6px rgba(138, 97, 0, .25); }
+  .hari-plot button.on small, .hari-plot button.on i { color: var(--brand-ink); }
+  .stepper { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 6px; }
+  .stepper button { border: 1.5px solid var(--line); border-radius: 11px; background: #fff; color: var(--brand-2); font-size: 20px; font-weight: 800; cursor: pointer; padding: 0; }
+  .stepper input.in { text-align: center; padding-left: 2px; padding-right: 2px; }
+  .plot-baris .cat { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .plot-baris .peringatan { font-size: 12px; font-weight: 700; color: var(--red); margin-top: 3px; line-height: 1.3; }
+  .plot-baris.langgar select.in { border-color: var(--red); background: var(--red-soft); }
+  .plot-rekap tr.grup td { background: var(--gray-soft); font-weight: 800; color: var(--ink); }
+  .plot-rekap tr.grup td:first-child { padding-left: 8px; }
+  .plot-rekap tr.grup td span { font-weight: 600; color: var(--muted); font-size: 12px; }
+  .banding { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
+  .banding.naik { color: var(--red); }
+  .banding.turun { color: var(--green); }
+  .sub-total { font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
   .konvoi { display: flex; gap: 4px; margin-top: 10px; overflow: hidden; }
   .konvoi svg { width: 64px; flex: none; animation: trukMasuk 1.3s cubic-bezier(.2,.75,.25,1) both; }
   .lacak { padding: 11px 0; border-top: 1px solid var(--line); }
@@ -1148,6 +1171,7 @@
   
   function usulkanPlot(baris, truk, hitung, aturan) {
     var hr = {}, mg = {}, bl = {}, pb = {}, mamah = aturan.pabrikMamah || [], maks = aturan.maksHari || 2, libur = aturan.libur || {};
+    var hanya = aturan.tanggal || '', diisi = {};
     var kb = function (tgl) { return String(tgl).slice(0, 4) + String(tgl).slice(5, 7); };
     Object.keys(hitung.bulan || {}).forEach(function (k) { bl[k] = hitung.bulan[k]; });
     Object.keys(hitung.pabrik || {}).forEach(function (k) { pb[k] = hitung.pabrik[k]; });
@@ -1161,7 +1185,7 @@
     baris.forEach(function (r) { if (r.nopol) catat(r); });
     var otomatis = truk.filter(function (t) { return (t.plot || 'OTOMATIS') === 'OTOMATIS'; });
     var khusus = function (r) { return mamah.indexOf(r.pabrik) >= 0 ? 1 : 0; };
-    baris.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !x.r.nopol; }).sort(function (a, b) {
+    baris.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !x.r.nopol && (!hanya || x.r.tanggal === hanya); }).sort(function (a, b) {
       // per hari; pabrik khusus mobil Mamah dibagi duluan supaya mobil Mamah tidak habis untuk pabrik lain
       return a.r.tanggal < b.r.tanggal ? -1 : a.r.tanggal > b.r.tanggal ? 1 : (khusus(b.r) - khusus(a.r)) || a.i - b.i;
     }).forEach(function (x) {
@@ -1185,10 +1209,12 @@
       r.supir = calon[0].supir || '';
       r.cara = 'OTOMATIS';
       catat(r);
+      diisi[x.i] = true;
     });
-    // Tukar truk antar rit usulan di hari yang sama kalau sebaran pabrik jadi lebih rata. Jumlah rit tiap truk per hari,
-    // minggu, dan bulan tidak berubah; yang berubah hanya truk mana menarik pabrik mana.
-    var oto = baris.filter(function (r) { return r.cara === 'OTOMATIS' && r.nopol; }), pem = {};
+    // Tukar truk antar rit yang baru diisi di hari yang sama kalau sebaran pabrik jadi lebih rata. Jumlah rit tiap truk per hari,
+    // minggu, dan bulan tidak berubah; yang berubah hanya truk mana menarik pabrik mana. Rit yang sudah diplot sebelumnya
+    // (mungkin sudah dikirim ke grup supir) tidak ikut ditukar.
+    var oto = baris.filter(function (r, i) { return diisi[i]; }), pem = {};
     truk.forEach(function (t) { pem[t.nopol] = t; });
     var boleh = function (nopol, r) { return !khusus(r) || pem[nopol].pemilik === aturan.pemilikMamah; };
     for (var putaran = 0, ulang = true; ulang && putaran < 20; putaran++) {
@@ -1483,7 +1509,7 @@
    * Diuji di _dev/uji.js dengan PDF asli "4. A WIRA - AGUSTUS 2026" dan contoh latihan.
    */
   var KOLOM_RIT = [['tanggal', /^TANGGAL$|^TGL$/], ['supir', /SUPIR|DRIVER/], ['nopol', /^NO\.?\s*POL|^NOPOL|POLISI/],
-    ['jenis', /JENIS/], ['pabrik', /PABRIK|PERUSAHAAN/], ['kg', /TONASE|BERAT|^KG$/]];
+    ['jenis', /JENIS/], ['pabrik', /PABRIK|PERUSAHAAN|^ASAL\b/], ['kg', /TONASE|BERAT|^KG$/]];      // PDF Ibu: "ASAL LIMBAH"
   
   /** Satu baris pola teks: [no] dd/mm/yyyy SUPIR NOPOL JENIS PABRIK TONASE. */
   var POLA_RIT = /^(?:\d{1,3}\s+)?(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{4})\s+(.*?)\s*\b([A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,3})\s+(FLY\s*ASH(?:\s*&\s*BOTTOM\s*ASH)?|BOTTOM\s*ASH|FABA|SLUDGE)\s+(.+?)\s+([\d.,]+)$/;
@@ -4262,7 +4288,7 @@
     if (v === 'armada') ARMADA = null;
     if (v === 'rawat' && view !== 'rawatForm' && S.peran === 'PEMILIK') filterRawat = { truk: '', jenis: '' };
     if (v === 'ceklis' && view !== 'ceklis') CEK = null;              // data bayar bisa berubah dari HP lain
-    if (v === 'plot' && view !== 'plot' && PLOT && !PLOT.ubah) PLOT = null;
+    if (v === 'plot' && view !== 'plot' && PLOT && !PLOT.ubah) { PLOT = null; HARI_PLOT = ''; }
     buka(v);
   };
   A.go = function (v) {
@@ -4699,6 +4725,7 @@
       garasiLihat = null;
       ARMADA = null;
       PLOT = null;
+      HARI_PLOT = '';
       CEK = null;
       tabTruk = null;
       bulanTruk = null;
@@ -5024,13 +5051,23 @@
   };
 
   // ================= v1.5 plotingan supir (Bapak & Super Admin)
+  // v1.6: dikerjakan per hari. Permintaan tarikan dari pabrik datang H-1 atau hari H; begitu diisi, truknya langsung
+  // diplotkan otomatis sesuai aturan dan tetap bisa diganti manual. Data dimuat & disimpan per minggu supaya hitungan
+  // rata per minggu dan per bulan ikut terbawa.
   var PLOT = null;          // rencana minggu yang dibuka + perubahan yang belum disimpan
+  var HARI_PLOT = '';       // tanggal yang sedang dibuka (yyyy-mm-dd)
   var NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   function hariKe(tgl) { return new Date(Date.UTC(Number(tgl.slice(0, 4)), Number(tgl.slice(5, 7)) - 1, Number(tgl.slice(8, 10)))).getUTCDay(); }
+  /** Sebelum jam 12 siang yang dibuka hari ini (permintaan hari H), sesudahnya besok (permintaan H-1). */
+  function hariAwalPlot() {
+    return new Date(Date.now() + 7 * 3600000).getUTCHours() >= 12 ? tambahHariTgl(S.hariIni, 1) : S.hariIni;
+  }
   function muatPlot(tgl) {
-    return panggil('plot', { tanggal: tgl || '' }, 'Memuat plot…').then(function (h) {
+    var target = tgl || HARI_PLOT || hariAwalPlot();
+    return panggil('plot', { tanggal: target }, 'Memuat plot…').then(function (h) {
       h.ubah = false;
       PLOT = h;
+      HARI_PLOT = target >= h.senin && target <= tambahHariTgl(h.senin, 6) ? target : h.senin;
       if (view === 'plot') render();
     }).catch(function (e) { toast(e.message, 'bad'); });
   }
@@ -5041,6 +5078,19 @@
   function rentangMinggu(senin) {
     var akhir = tambahHariTgl(senin, 6);
     return Number(senin.slice(8)) + (senin.slice(5, 7) === akhir.slice(5, 7) ? '' : ' ' + BULAN_PENDEK[Number(senin.slice(5, 7)) - 1]) + '–' + tglIndo(akhir);
+  }
+  /** "Besok, Sabtu 4 Okt 2026" / "Hari ini, ..." / "Senin 6 Okt 2026". */
+  function judulHariPlot(tgl) {
+    var dekat = tgl === S.hariIni ? 'Hari ini, ' : tgl === tambahHariTgl(S.hariIni, 1) ? 'Besok, ' : '';
+    return dekat + NAMA_HARI[hariKe(tgl)] + ' ' + tglIndo(tgl);
+  }
+  function hariPendekPlot(tgl) {
+    return tgl === S.hariIni ? 'hari ini' : tgl === tambahHariTgl(S.hariIni, 1) ? 'besok' : NAMA_HARI[hariKe(tgl)] + ' ' + Number(tgl.slice(8));
+  }
+  /** Rit pabrik khusus mobil Mamah yang dipegang truk pemilik lain. */
+  function langgarMamah(r) {
+    var t = r.nopol ? trukPlot(r.nopol) : null;
+    return !!(t && PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0 && t.pemilik !== PLOT.aturan.pemilikMamah);
   }
   function opsiTrukPlot(r) {
     var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, grup = {}, urut = [];
@@ -5069,36 +5119,53 @@
     }).join('');
   }
   function barisPlotHtml(r, i) {
-    var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, manual = r.jenis !== 'FABA';
+    var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, manual = r.jenis !== 'FABA', langgar = langgarMamah(r);
     var lencana = (r.jenis === 'SLUDGE' ? '<span class="bdg amber">sludge</span>' : r.jenis === 'MEDIS' ? '<span class="bdg red">medis</span>' : '') +
       (mamah ? '<span class="bdg blue">mobil ' + esc(PLOT.aturan.namaMamah) + '</span>' : '') +
-      (r.cara === 'OTOMATIS' ? '<span class="bdg gray">usulan</span>' : r.cara === 'MANUAL' ? '<span class="bdg green">dipilih</span>' : '');
-    return '<div class="plot-baris' + (r.nopol ? '' : ' tanpa-truk') + '" id="pb-' + i + '"><div class="tx"><b>' + esc(r.namaPabrik || r.pabrik) + '</b>' + lencana +
+      (r.cara === 'OTOMATIS' ? '<span class="bdg gray">otomatis</span>' : r.cara === 'MANUAL' ? '<span class="bdg green">dipilih</span>' : '');
+    return '<div class="plot-baris' + (r.nopol ? '' : ' tanpa-truk') + (langgar ? ' langgar' : '') + '" id="pb-' + i + '"><div class="tx"><b>' + esc(r.namaPabrik || r.pabrik) + '</b>' + lencana +
       (manual ? ' <button class="link" style="font-size:12.5px" data-a="plotTujuan" data-v="' + i + '">' + (r.tujuan ? 'ke ' + esc(r.tujuan) : '+ pemanfaat') + '</button>' : '') +
-      (r.alasan && !r.nopol ? '<div class="alasan">' + esc(r.alasan) + '</div>' : '') + '</div>' +
+      (r.catatan ? '<div class="cat">' + esc(r.catatan) + '</div>' : '') +
+      (r.alasan && !r.nopol ? '<div class="alasan">' + esc(r.alasan) + '</div>' : '') +
+      (langgar ? '<div class="peringatan">Khusus mobil ' + esc(PLOT.aturan.namaMamah) + '. ' + esc(r.nopol) + ' punya ' + esc(trukPlot(r.nopol).namaPemilik) + '.</div>' : '') + '</div>' +
       '<select class="in" data-plot-truk="' + i + '" aria-label="Truk untuk ' + esc(r.namaPabrik || r.pabrik) + '">' + opsiTrukPlot(r) + '</select>' +
       '<button class="btn-x" data-a="plotHapus" data-v="' + i + '" aria-label="Hapus rit">×</button></div>';
   }
+  /** Rekap rit per truk, dikelompokkan per pemilik (subtotal tiap pemilik di baris abu-abu). */
   function kartuRekapPlot() {
-    var kamis = tambahHariTgl(PLOT.senin, 3), kb = kamis.slice(0, 4) + kamis.slice(5, 7), mg = {}, bl = {};
+    var hari = HARI_PLOT, kb = hari.slice(0, 4) + hari.slice(5, 7), hr = {}, mg = {}, bl = {};
     PLOT.baris.forEach(function (r) {
       if (!r.nopol) return;
       mg[r.nopol] = (mg[r.nopol] || 0) + 1;
       if (r.tanggal.slice(0, 4) + r.tanggal.slice(5, 7) === kb) bl[r.nopol] = (bl[r.nopol] || 0) + 1;
+      if (r.tanggal === hari) hr[r.nopol] = (hr[r.nopol] || 0) + 1;
     });
     var oto = PLOT.truk.filter(function (t) { return t.plot === 'OTOMATIS'; }).map(function (t) { return mg[t.nopol] || 0; });
     var selisih = oto.length ? Math.max.apply(null, oto) - Math.min.apply(null, oto) : 0, adaTruk = PLOT.baris.some(function (r) { return r.nopol; });
+    var nHari = function (t) { return hr[t.nopol] || 0; }, nMinggu = function (t) { return mg[t.nopol] || 0; };
+    var nBulan = function (t) { return (PLOT.hitung.bulan[kb + '|' + t.nopol] || 0) + (bl[t.nopol] || 0); }, nLalu = function (t) { return PLOT.ritLalu[t.nopol] || 0; };
+    var jml = function (daftar, f) { return daftar.reduce(function (a, t) { return a + f(t); }, 0); };
     var h = '<div class="card" id="kartuRekapPlot"><div class="row"><h2 style="margin:0">Rekap per truk</h2>' +
       (adaTruk ? '<span class="bdg ' + (selisih <= 1 ? 'green' : 'amber') + '">' + (selisih <= 1 ? 'rata' : 'selisih ' + selisih + ' rit') + '</span>' : '') + '</div>' +
-      '<div class="small muted" style="margin:4px 0 2px">Rit minggu ini dan ' + esc(namaBulan(Number(kb))) + ' dari rencana; ' + esc(namaBulan(PLOT.bulanLalu)) +
-      ' dari rit asli yang diimpor Lala. Truk abu-abu dipilih manual, tidak ikut dibagi rata.</div>';
-    h += '<table class="tbl kecil plot-rekap"><tr><th style="text-align:left">Truk</th><th>Minggu</th><th>' + BULAN_PENDEK[Number(kb.slice(4)) - 1] + '</th><th>' +
-      BULAN_PENDEK[PLOT.bulanLalu % 100 - 1] + '</th></tr>' + PLOT.truk.map(function (t) {
-        var b = (PLOT.hitung.bulan[kb + '|' + t.nopol] || 0) + (bl[t.nopol] || 0);
-        return '<tr' + (t.plot !== 'OTOMATIS' ? ' class="redup"' : '') + '><td>' + esc(t.nopol) + '<div class="small muted" style="font-weight:600">' +
-          esc([judulKata(t.supir || ''), t.namaPemilik, t.plot === 'MANUAL' ? 'manual' : t.plot === 'TIDAK' ? 'tidak ikut' : ''].filter(Boolean).join(' · ')) +
-          '</div></td><td class="n">' + (mg[t.nopol] || 0) + '</td><td class="n">' + b + '</td><td class="n">' + (PLOT.ritLalu[t.nopol] || '–') + '</td></tr>';
-      }).join('') + '</table>';
+      '<div class="small muted" style="margin:4px 0 2px">Per pemilik. Rit ' + esc(hariPendekPlot(hari)) + ', minggu ini, dan ' + esc(namaBulan(Number(kb))) + ' dari plot; ' +
+      esc(namaBulan(PLOT.bulanLalu)) + ' dari rit asli yang diimpor Lala. Truk abu-abu dipilih manual, tidak ikut dibagi rata.</div>';
+    var grup = [], isi = {};
+    PLOT.truk.forEach(function (t) {
+      if (!isi[t.namaPemilik]) { isi[t.namaPemilik] = []; grup.push(t.namaPemilik); }
+      isi[t.namaPemilik].push(t);
+    });
+    h += '<table class="tbl kecil plot-rekap"><tr><th style="text-align:left">Truk</th><th>' + esc(NAMA_HARI[hariKe(hari)].slice(0, 3) + ' ' + Number(hari.slice(8))) +
+      '</th><th>Minggu</th><th>' + BULAN_PENDEK[Number(kb.slice(4)) - 1] + '</th><th>' + BULAN_PENDEK[PLOT.bulanLalu % 100 - 1] + '</th></tr>';
+    grup.forEach(function (g) {
+      var d = isi[g];
+      h += '<tr class="grup"><td>' + esc(g) + ' <span>· ' + d.length + ' truk</span></td><td class="n">' + jml(d, nHari) + '</td><td class="n">' + jml(d, nMinggu) +
+        '</td><td class="n">' + jml(d, nBulan) + '</td><td class="n">' + (jml(d, nLalu) || '–') + '</td></tr>' + d.map(function (t) {
+          var ket = [judulKata(t.supir || ''), t.plot === 'MANUAL' ? 'manual' : t.plot === 'TIDAK' ? 'tidak ikut' : ''].filter(Boolean).join(' · ');
+          return '<tr' + (t.plot !== 'OTOMATIS' ? ' class="redup"' : '') + '><td>' + esc(t.nopol) + (ket ? '<div class="small muted" style="font-weight:600">' + esc(ket) + '</div>' : '') +
+            '</td><td class="n">' + nHari(t) + '</td><td class="n">' + nMinggu(t) + '</td><td class="n">' + nBulan(t) + '</td><td class="n">' + (nLalu(t) || '–') + '</td></tr>';
+        }).join('');
+    });
+    h += '</table>';
     // sebaran pabrik minggu ini: pabrik yang ditarik 3 rit atau lebih
     var perPabrik = {};
     PLOT.baris.forEach(function (r) {
@@ -5120,103 +5187,152 @@
   VIEWS.plot = function () {
     var h = kepala('Plotingan supir', S.peran === 'DIREKSI' ? null : 'lainnya');
     if (!PLOT) return h + '<div class="card"><div class="kosong">Memuat plot…</div></div>';
-    var P = PLOT, kosong = P.baris.filter(function (r) { return !r.nopol; }).length;
-    h += '<div class="card"><div class="row"><button class="btn sm ghost" data-a="plotMinggu" data-v="-7" aria-label="Minggu sebelumnya" id="btnPlotSebelum">‹</button>' +
-      '<div style="text-align:center"><b>' + esc(rentangMinggu(P.senin)) + '</b><div class="small muted">' + P.baris.length + ' rit' +
-      (kosong ? ' · ' + kosong + ' belum ada truk' : '') + (P.ubah ? ' · <b style="color:var(--amber)">belum disimpan</b>' : '') + '</div></div>' +
-      '<button class="btn sm ghost" data-a="plotMinggu" data-v="7" aria-label="Minggu berikutnya" id="btnPlotSesudah">›</button></div>' +
-      '<div class="small muted" style="margin-top:8px">Isi tarikan tiap hari, lalu ketuk <b>Usulkan pembagian</b>. Sistem membagi rit supaya rata per minggu dan per bulan, ' +
-      'pabrik khusus hanya ke mobil ' + esc(P.aturan.namaMamah) + ', dan tidak ada truk yang terus-terusan menarik pabrik yang sama. Fuso, sludge, dan medis dipilih manual.</div></div>';
-    h += '<div class="dua" style="margin-bottom:12px"><button class="btn" data-a="plotUsul" id="btnPlotUsul">Usulkan pembagian</button>' +
-      '<button class="btn ghost" data-a="plotSalinLalu" id="btnPlotSalin"' + (P.mingguLalu.length ? '' : ' disabled') + '>Salin minggu lalu</button></div>';
+    var P = PLOT, hari = HARI_PLOT, besok = tambahHariTgl(S.hariIni, 1), urutan = (hariKe(hari) + 6) % 7, barisHari = [], kosong = 0;
+    P.baris.forEach(function (r, j) {
+      if (r.tanggal !== hari) return;
+      barisHari.push(barisPlotHtml(r, j));
+      if (!r.nopol) kosong++;
+    });
+    var libur = P.libur.filter(function (l) { return l.tanggal === hari; });
+    var salinan = P.mingguLalu.filter(function (x) { return x.hari === urutan; });
+    // 1. pilih hari (minggu Senin-Minggu)
+    h += '<div class="card" id="kartuHariPlot"><div class="row"><button class="btn sm ghost" data-a="plotMinggu" data-v="-7" aria-label="Minggu sebelumnya" id="btnPlotSebelum">‹</button>' +
+      '<div style="text-align:center"><b>' + esc(rentangMinggu(P.senin)) + '</b><div class="small muted">' + P.baris.length + ' rit minggu ini' +
+      (P.ubah ? ' · <b style="color:var(--amber)">belum disimpan</b>' : '') + '</div></div>' +
+      '<button class="btn sm ghost" data-a="plotMinggu" data-v="7" aria-label="Minggu berikutnya" id="btnPlotSesudah">›</button></div><div class="hari-plot">';
     for (var i = 0; i < 7; i++) {
-      var tgl = tambahHariTgl(P.senin, i), libur = P.libur.filter(function (l) { return l.tanggal === tgl; });
-      var baris = [];
-      P.baris.forEach(function (r, j) { if (r.tanggal === tgl) baris.push(barisPlotHtml(r, j)); });
-      h += '<div class="card" id="hari-' + tgl + '"><div class="row"><h2 style="margin:0;font-size:16px">' + NAMA_HARI[hariKe(tgl)] + ', ' + esc(tglIndo(tgl)) + '</h2>' +
-        '<span class="small muted">' + (baris.length ? baris.length + ' rit' : 'belum ada') + '</span></div>' +
-        '<div class="libur-baris">' + libur.map(function (l) {
-          return '<button class="chip-libur" data-a="plotHapusLibur" data-v="' + esc(tgl + '|' + l.nopol) + '" title="Ketuk untuk batal libur">' + esc(l.nopol) + ' · ' +
-            esc(labelAlasan(l.alasan).toLowerCase()) + ' ×</button>';
-        }).join('') + '<button class="link small" data-a="plotTambahLibur" data-v="' + tgl + '" id="btnLibur-' + tgl + '">+ truk libur</button></div>' +
-        baris.join('') + '<div class="plot-tambah"><select class="in" id="tbPabrik-' + tgl + '" aria-label="Pabrik">' + opsiPabrikPlot() + '</select>' +
-        '<input class="in" id="tbJumlah-' + tgl + '" type="number" min="1" max="20" value="1" inputmode="numeric" aria-label="Jumlah rit">' +
-        '<button class="btn sm" data-a="plotTambah" data-v="' + tgl + '" id="btnTambah-' + tgl + '">+ Rit</button></div></div>';
+      var t = tambahHariTgl(P.senin, i), n = P.baris.filter(function (r) { return r.tanggal === t; }).length;
+      h += '<button data-a="plotHari" data-v="' + t + '" id="hp-' + t + '" class="' + (t === hari ? 'on' : '') + (t === S.hariIni ? ' ini' : '') + '" aria-label="' +
+        esc(NAMA_HARI[hariKe(t)] + ' ' + tglIndo(t) + ', ' + n + ' rit') + '"><small>' + (t === S.hariIni ? 'Hari ini' : t === besok ? 'Besok' : NAMA_HARI[hariKe(t)].slice(0, 3)) +
+        '</small><b>' + Number(t.slice(8)) + '</b><i>' + (n ? n + ' rit' : '–') + '</i></button>';
     }
+    h += '</div></div>';
+    // 2. permintaan tarikan dari pabrik: langsung diplotkan
+    h += '<div class="card" id="kartuPermintaan"><h2 style="margin:0">Permintaan tarikan</h2><div class="small muted" id="judulHariPlot">' + esc(judulHariPlot(hari)) + '</div>' +
+      '<label class="lb" for="tbPabrik">Pabrik yang minta ditarik</label><select class="in" id="tbPabrik">' + opsiPabrikPlot() + '</select>' +
+      '<div class="grid2"><div><label class="lb" for="tbJumlah">Jumlah rit</label><div class="stepper"><button data-a="plotJumlah" data-v="-1" aria-label="Kurangi rit">−</button>' +
+      '<input class="in" id="tbJumlah" type="number" min="1" max="20" value="1" inputmode="numeric"><button data-a="plotJumlah" data-v="1" aria-label="Tambah rit">+</button></div></div>' +
+      '<div><label class="lb" for="tbCatatan">Catatan</label><input class="in" id="tbCatatan" maxlength="60" placeholder="mis. jam 7 pagi"></div></div>' +
+      '<button class="btn" style="margin-top:12px" data-a="plotTambah" id="btnPlotTambah">Plotkan otomatis</button>' +
+      (salinan.length ? '<button class="link small" style="display:block;margin:12px auto 0" data-a="plotSalinLalu" id="btnPlotSalin">Salin permintaan ' +
+        esc(NAMA_HARI[hariKe(hari)]) + ' minggu lalu (' + salinan.length + ' rit)</button>' : '') + '</div>';
+    // 3. hasil plot hari itu: bisa diganti manual, truk yang tidak jalan dilepas & rit-nya dipindah otomatis
+    h += '<div class="card" id="kartuHasilPlot"><div class="row"><h2 style="margin:0">Hasil plot</h2><span class="small muted">' +
+      (barisHari.length ? barisHari.length + ' rit' + (kosong ? ' · <b style="color:var(--amber)">' + kosong + ' belum ada truk</b>' : '') : 'belum ada') + '</span></div>' +
+      '<div class="libur-baris">' + libur.map(function (l) {
+        return '<button class="chip-libur" data-a="plotHapusLibur" data-v="' + esc(hari + '|' + l.nopol) + '" title="Ketuk untuk batal">' + esc(l.nopol) + ' · ' +
+          esc(labelAlasan(l.alasan).toLowerCase()) + ' ×</button>';
+      }).join('') + '<button class="link small" data-a="plotTambahLibur" data-v="' + hari + '" id="btnLibur">+ supir / truk tidak jalan</button></div>' +
+      (barisHari.length ? barisHari.join('') + '<div class="small muted" style="margin:10px 0">Truk bisa diganti manual di kotak pilihan. Kalau pabrik khusus mobil ' +
+        esc(P.aturan.namaMamah) + ' dipindah ke truk lain, muncul peringatan.</div><button class="btn sm ghost" data-a="plotUsul" id="btnPlotUsul">Bagi ulang otomatis</button>' :
+        '<div class="kosong">Belum ada permintaan. Pilih pabrik di atas, truknya langsung dipilihkan.</div>') + '</div>';
     h += kartuRekapPlot();
-    h += '<div id="errPlot" class="err"></div><button class="btn" data-a="plotSimpan" id="btnPlotSimpan">Simpan plot minggu ini</button>' +
-      '<button class="btn ghost" data-a="plotWa" id="btnPlotWa">Kirim jadwal ke WhatsApp</button>' +
+    h += '<div id="errPlot" class="err"></div><button class="btn" data-a="plotSimpan" id="btnPlotSimpan">Simpan plot</button>' +
+      '<button class="btn ghost" data-a="plotWa" id="btnPlotWa">Kirim plot ' + esc(hariPendekPlot(hari)) + ' ke WhatsApp</button>' +
       '<button class="btn ghost" data-a="plotAturan" id="btnPlotAturan">Aturan plotingan</button>';
     return h;
   };
   SETELAH.plot = function () { if (!PLOT) muatPlot(); };
   A.plotMinggu = function (v) {
-    var lanjut = function () { muatPlot(tambahHariTgl(PLOT.senin, Number(v))); };
+    var lanjut = function () { muatPlot(tambahHariTgl(HARI_PLOT || PLOT.senin, Number(v))); };
     if (PLOT && PLOT.ubah) {
       dialog({ judul: 'Perubahan belum disimpan', isi: 'Kalau pindah minggu, perubahan plot minggu ini hilang.', ok: 'Pindah', bahaya: true })
         .then(function (ya) { if (ya) lanjut(); });
     } else lanjut();
   };
-  A.plotTambah = function (tgl) {
-    var p = $('tbPabrik-' + tgl).value, n = Math.max(1, Math.min(20, Number($('tbJumlah-' + tgl).value) || 1));
-    if (!p) { toast('Pilih pabriknya dulu.', 'bad'); return; }
-    var pb = pabrikPlot(p);
-    for (var i = 0; i < n; i++) PLOT.baris.push({ id: '', tanggal: tgl, pabrik: p, namaPabrik: pb.nama, jenis: pb.jenis, nopol: '', supir: '', cara: '', tujuan: '', catatan: '' });
-    PLOT.baris.sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
-    PLOT.ubah = true;
-    render();
-  };
-  A.plotHapus = function (i) { PLOT.baris.splice(Number(i), 1); PLOT.ubah = true; render(); };
-  A.plotUsul = function () {
+  A.plotHari = function (tgl) { HARI_PLOT = tgl; render(); };
+  A.plotJumlah = function (v) { var el = $('tbJumlah'); el.value = Math.max(1, Math.min(20, (Number(el.value) || 1) + Number(v))); };
+  /** Isi truk untuk rit yang belum punya truk di tanggal itu (permintaan baru, rit yang dilepas karena supir/truk tidak jalan). */
+  function plotkanHari(tgl) {
     var libur = {};
     PLOT.libur.forEach(function (l) { libur[l.tanggal + '|' + l.nopol] = l.alasan; });
-    PLOT.baris.forEach(function (r) { if (r.cara === 'OTOMATIS') { r.nopol = ''; r.supir = ''; r.cara = ''; } });
     usulkanPlot(PLOT.baris, PLOT.truk, PLOT.hitung, { pabrikMamah: PLOT.aturan.pabrikMamah, pemilikMamah: PLOT.aturan.pemilikMamah,
-      maksHari: PLOT.aturan.maksHari, libur: libur });
-    var oto = PLOT.baris.filter(function (r) { return r.cara === 'OTOMATIS'; }).length, kosong = PLOT.baris.filter(function (r) { return !r.nopol; }).length;
+      maksHari: PLOT.aturan.maksHari, libur: libur, tanggal: tgl });
+  }
+  function ritBaru(tgl, pb, catatan) {
+    return { id: '', tanggal: tgl, pabrik: pb.kode, namaPabrik: pb.nama, jenis: pb.jenis, nopol: '', supir: '', cara: '', tujuan: '', catatan: catatan || '' };
+  }
+  function tambahRitPlot(baru) {
+    // Usulan otomatis yang belum disimpan di hari itu ikut dibagi ulang bersama permintaan baru (pabrik khusus mobil Mamah
+    // didahulukan), jadi urutan Bapak mengisi tidak memengaruhi hasil. Rit yang sudah disimpan dan pilihan manual tetap.
+    PLOT.baris.forEach(function (r) { if (r.tanggal === baru[0].tanggal && r.cara === 'OTOMATIS' && !r.id) { r.nopol = ''; r.supir = ''; r.cara = ''; } });
+    PLOT.baris = PLOT.baris.concat(baru);
+    PLOT.baris.sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
+    plotkanHari(baru[0].tanggal);
     PLOT.ubah = true;
     render();
     SUARA.pop();
-    toast(oto ? oto + ' rit dibagi otomatis' + (kosong ? ', ' + kosong + ' rit perlu dipilih manual.' : '. Cek dulu, lalu simpan.') : 'Belum ada rit yang bisa dibagi otomatis.');
+  }
+  A.plotTambah = function () {
+    var p = $('tbPabrik').value, n = Math.max(1, Math.min(20, Number($('tbJumlah').value) || 1)), catatan = $('tbCatatan').value.trim().slice(0, 60);
+    if (!p) { toast('Pilih pabriknya dulu.', 'bad'); return; }
+    var pb = pabrikPlot(p), baru = [];
+    for (var i = 0; i < n; i++) baru.push(ritBaru(HARI_PLOT, pb, catatan));
+    tambahRitPlot(baru);
+    var dapat = baru.filter(function (r) { return r.nopol; }).map(function (r) { return r.nopol; }), belum = baru.filter(function (r) { return !r.nopol; });
+    toast(pb.nama + ' ' + n + ' rit' + (dapat.length ? ' → ' + dapat.join(', ') : '') + (belum.length ? '. ' + (dapat.length ? belum.length + ' rit belum ada truk: ' : '') +
+      (belum[0].alasan || 'pilih truknya') + ', pilih di bawah' : '') + '.', belum.length && pb.jenis === 'FABA' ? 'bad' : '');
   };
-  A.plotSalinLalu = function () {
-    var tambah = function () {
-      PLOT.mingguLalu.forEach(function (x) {
-        var pb = pabrikPlot(x.pabrik);
-        if (pb) PLOT.baris.push({ id: '', tanggal: tambahHariTgl(PLOT.senin, x.hari), pabrik: x.pabrik, namaPabrik: pb.nama, jenis: pb.jenis, nopol: '', supir: '', cara: '', tujuan: '', catatan: '' });
-      });
-      PLOT.baris.sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
+  A.plotHapus = function (i) { PLOT.baris.splice(Number(i), 1); PLOT.ubah = true; render(); };
+  /** Bagi ulang rit otomatis hari yang dibuka; rit pilihan manual tidak diubah. */
+  A.plotUsul = function () {
+    var hari = HARI_PLOT, oto = PLOT.baris.filter(function (r) { return r.tanggal === hari && r.cara === 'OTOMATIS'; });
+    var tersimpan = oto.filter(function (r) { return r.id; }).length;
+    var jalan = function () {
+      oto.forEach(function (r) { r.nopol = ''; r.supir = ''; r.cara = ''; });
+      plotkanHari(hari);
       PLOT.ubah = true;
       render();
-      toast(PLOT.mingguLalu.length + ' rit minggu lalu disalin. Ketuk "Usulkan pembagian" untuk membagi truknya.');
+      SUARA.pop();
+      var kosong = PLOT.baris.filter(function (r) { return r.tanggal === hari && !r.nopol; }).length;
+      toast('Dibagi ulang' + (kosong ? ', ' + kosong + ' rit perlu dipilih manual.' : '. Cek dulu, lalu simpan.'));
     };
-    if (PLOT.baris.length) {
-      dialog({ judul: 'Tambah daftar minggu lalu?', isi: 'Minggu ini sudah ada ' + PLOT.baris.length + ' rit. Daftar minggu lalu (' + PLOT.mingguLalu.length +
-        ' rit) ditambahkan di bawahnya.', ok: 'Tambahkan' }).then(function (ya) { if (ya) tambah(); });
-    } else tambah();
+    if (tersimpan) {
+      dialog({ judul: 'Bagi ulang plot ' + hariPendekPlot(hari) + '?', isi: tersimpan + ' rit otomatis sudah tersimpan dan mungkin sudah dikirim ke grup supir. ' +
+        'Truknya bisa berubah. Rit yang dipilih manual tidak diubah.', ok: 'Bagi ulang' }).then(function (ya) { if (ya) jalan(); });
+    } else jalan();
+  };
+  A.plotSalinLalu = function () {
+    var hari = HARI_PLOT, urutan = (hariKe(hari) + 6) % 7, baru = [];
+    PLOT.mingguLalu.forEach(function (x) {
+      var pb = x.hari === urutan && pabrikPlot(x.pabrik);
+      if (pb) baru.push(ritBaru(hari, pb, ''));
+    });
+    if (!baru.length) return;
+    var jalan = function () { tambahRitPlot(baru); toast(baru.length + ' permintaan disalin dan diplotkan. Hapus yang minggu ini tidak minta.'); };
+    var ada = PLOT.baris.filter(function (r) { return r.tanggal === hari; }).length;
+    if (ada) {
+      dialog({ judul: 'Tambah permintaan minggu lalu?', isi: 'Plot ' + hariPendekPlot(hari) + ' sudah ada ' + ada + ' rit. Permintaan ' + NAMA_HARI[hariKe(hari)] + ' minggu lalu (' + baru.length +
+        ' rit) ditambahkan.', ok: 'Tambahkan' }).then(function (ya) { if (ya) jalan(); });
+    } else jalan();
   };
   A.plotTambahLibur = function (tgl) {
     var bisa = PLOT.truk.filter(function (t) { return !liburPlot(tgl, t.nopol); });
-    bukaSheet('libur', tgl, '<div class="sheet-top"><div><h2 style="margin:0">Truk libur</h2><div class="muted small">' + NAMA_HARI[hariKe(tgl)] + ', ' + esc(tglIndo(tgl)) +
+    bukaSheet('libur', tgl, '<div class="sheet-top"><div><h2 style="margin:0">Supir / truk tidak jalan</h2><div class="muted small">' + esc(judulHariPlot(tgl)) +
       '</div></div><button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
-      '<label class="lb" for="lbTruk">Truk / supir yang tidak jalan</label><select id="lbTruk" class="in">' + bisa.map(function (t) {
+      '<div class="small muted" style="margin-top:6px">Rit truk ini di hari itu langsung dipindah ke truk lain sesuai aturan.</div>' +
+      '<label class="lb" for="lbTruk">Truk / supir</label><select id="lbTruk" class="in">' + bisa.map(function (t) {
         return '<option value="' + esc(t.nopol) + '">' + esc(t.nopol) + (t.supir ? ' · ' + esc(judulKata(t.supir)) : '') + ' (' + esc(t.namaPemilik) + ')</option>';
       }).join('') + '</select><label class="lb">Alasan</label><div class="seg" id="lbAlasan">' + ALASAN_LIBUR.map(function (a, i) {
         return '<button data-a="pilihSeg" data-v="lbAlasan" data-k="' + a[0] + '" class="' + (i === 0 ? 'on' : '') + '">' + esc(a[1]) + '</button>';
-      }).join('') + '</div><button class="btn" style="margin-top:12px" data-a="simpanLibur" data-v="' + tgl + '" id="btnSimpanLibur">Tandai libur</button>');
+      }).join('') + '</div><button class="btn" style="margin-top:12px" data-a="simpanLibur" data-v="' + tgl + '" id="btnSimpanLibur">Tandai tidak jalan</button>');
   };
   /** Pilihan tunggal di lembar bawah: tombol data-v = id wadah, data-k = nilai. */
   A.pilihSeg = function (v, el) { Array.prototype.forEach.call($(v).children, function (b) { b.classList.toggle('on', b === el); }); };
   function nilaiSeg(id, cadangan) { var on = $(id) && $(id).querySelector('.on'); return on ? on.getAttribute('data-k') : cadangan; }
   A.simpanLibur = function (tgl) {
-    var nopol = $('lbTruk').value, alasan = nilaiSeg('lbAlasan', 'LAIN'), lepas = 0;
+    var nopol = $('lbTruk').value, alasan = nilaiSeg('lbAlasan', 'LAIN'), lepas = [];
     if (!nopol) return;
     PLOT.libur.push({ tanggal: tgl, nopol: nopol, alasan: alasan });
-    PLOT.baris.forEach(function (r) { if (r.tanggal === tgl && r.nopol === nopol) { r.nopol = ''; r.supir = ''; r.cara = ''; lepas++; } });
+    PLOT.baris.forEach(function (r) { if (r.tanggal === tgl && r.nopol === nopol) { r.nopol = ''; r.supir = ''; r.cara = ''; lepas.push(r); } });
+    if (lepas.length) plotkanHari(tgl);
     PLOT.ubah = true;
     tutupSheet();
     render();
-    if (lepas) toast(lepas + ' rit ' + nopol + ' hari itu dilepas. Ketuk "Usulkan pembagian" untuk mengisi ulang.');
+    if (lepas.length) {
+      var pindah = lepas.filter(function (r) { return r.nopol; }).map(function (r) { return r.nopol; }), sisa = lepas.length - pindah.length;
+      toast(lepas.length + ' rit ' + nopol + ' dipindah' + (pindah.length ? ' ke ' + pindah.join(', ') : '') + (sisa ? ', ' + sisa + ' rit perlu dipilih manual' : '') + '.');
+    }
   };
   A.plotHapusLibur = function (v) {
     var p = v.split('|');
@@ -5237,37 +5353,53 @@
   A.plotSimpan = function () {
     var err = $('errPlot');
     err.textContent = '';
-    var data = { senin: PLOT.senin, libur: PLOT.libur, baris: PLOT.baris.map(function (r) {
-      return { id: r.id, tanggal: r.tanggal, pabrik: r.pabrik, nopol: r.nopol, cara: r.cara, tujuan: r.tujuan, catatan: r.catatan };
-    }) };
-    panggil('simpanPlot', data, 'Menyimpan plot…').then(function (r) { return muatPlot(PLOT.senin).then(function () { return r; }); })
-      .then(function (r) { rayakan('ok', r.pesan, ''); }).catch(function (e) { err.textContent = e.message; });
+    var simpan = function () {
+      var data = { senin: PLOT.senin, libur: PLOT.libur, baris: PLOT.baris.map(function (r) {
+        return { id: r.id, tanggal: r.tanggal, pabrik: r.pabrik, nopol: r.nopol, cara: r.cara, tujuan: r.tujuan, catatan: r.catatan };
+      }) };
+      panggil('simpanPlot', data, 'Menyimpan plot…').then(function (r) { return muatPlot(HARI_PLOT).then(function () { return r; }); })
+        .then(function (r) { rayakan('ok', r.pesan, ''); }).catch(function (e) { err.textContent = e.message; });
+    };
+    var langgar = PLOT.baris.filter(langgarMamah);
+    if (langgar.length) {
+      dialog({ judul: 'Pabrik khusus mobil ' + PLOT.aturan.namaMamah + ' pakai truk lain', isi: langgar.map(function (r) {
+        return '• ' + NAMA_HARI[hariKe(r.tanggal)].slice(0, 3) + ' ' + Number(r.tanggal.slice(8)) + ' ' + r.namaPabrik + ' → ' + r.nopol + ' (' + trukPlot(r.nopol).namaPemilik + ')';
+      }).join('\n') + '\n\nTetap simpan?', ok: 'Tetap simpan' }).then(function (ya) { if (ya) simpan(); });
+    } else simpan();
   };
+  function teksRitWa(r) {
+    return r.namaPabrik + (r.jenis !== 'FABA' ? ' [' + r.jenis.toLowerCase() + ']' : '') + (r.tujuan ? ' ke ' + r.tujuan : '') + (r.catatan ? ' (' + r.catatan + ')' : '');
+  }
+  /** Jadwal hari yang dibuka untuk grup supir, per truk: "D 9440 VD (Aep): GAP, WIS". */
   A.plotWa = function () {
-    var L = ['*Plot tarikan ' + rentangMinggu(PLOT.senin) + '*'];
-    for (var i = 0; i < 7; i++) {
-      var tgl = tambahHariTgl(PLOT.senin, i);
-      var b = PLOT.baris.filter(function (r) { return r.tanggal === tgl; }), lb = PLOT.libur.filter(function (l) { return l.tanggal === tgl; });
-      if (!b.length && !lb.length) continue;
-      L.push('', '*' + NAMA_HARI[hariKe(tgl)] + ', ' + tglIndo(tgl) + '*');
-      b.forEach(function (r) {
-        var t = trukPlot(r.nopol);
-        L.push('• ' + (r.nopol ? r.nopol + (t && t.supir ? ' (' + judulKata(t.supir) + ')' : '') : 'BELUM ADA TRUK') + ' → ' + r.namaPabrik +
-          (r.jenis !== 'FABA' ? ' [' + r.jenis.toLowerCase() + ']' : '') + (r.tujuan ? ', ke ' + r.tujuan : ''));
-      });
-      if (lb.length) L.push('_Libur: ' + lb.map(function (l) { return l.nopol + ' (' + labelAlasan(l.alasan).toLowerCase() + ')'; }).join(', ') + '_');
-    }
+    var hari = HARI_PLOT, b = PLOT.baris.filter(function (r) { return r.tanggal === hari; }), lb = PLOT.libur.filter(function (l) { return l.tanggal === hari; });
+    if (!b.length) { toast('Belum ada rit di ' + hariPendekPlot(hari) + '.', 'bad'); return; }
+    var L = ['*Plot tarikan ' + NAMA_HARI[hariKe(hari)] + ', ' + tglIndo(hari) + '*', ''], per = {}, urut = [];
+    b.forEach(function (r) {
+      if (!r.nopol) return;
+      if (!per[r.nopol]) { per[r.nopol] = []; urut.push(r.nopol); }
+      per[r.nopol].push(r);
+    });
+    var daftar = PLOT.truk.map(function (t) { return t.nopol; }).filter(function (n) { return per[n]; });
+    daftar = daftar.concat(urut.filter(function (n) { return daftar.indexOf(n) < 0; }));
+    daftar.forEach(function (n, i) {
+      var t = trukPlot(n);
+      L.push((i + 1) + '. *' + n + '*' + (t && t.supir ? ' (' + judulKata(t.supir) + ')' : '') + ': ' + per[n].map(teksRitWa).join(', '));
+    });
+    var belum = b.filter(function (r) { return !r.nopol; });
+    if (belum.length) L.push('', '*Belum ada truk:* ' + belum.map(teksRitWa).join(', '));
+    if (lb.length) L.push('', '_Tidak jalan: ' + lb.map(function (l) { return l.nopol + ' (' + labelAlasan(l.alasan).toLowerCase() + ')'; }).join(', ') + '_');
     if (PLOT.ubah) toast('Plot belum disimpan. Yang dikirim versi di layar.');
     bukaWa(waLink_('', L.join('\n')), 'grup supir');
   };
   A.plotAturan = function () {
     var a = PLOT.aturan, belum = a.pabrikMamah.filter(function (k) { return !pabrikPlot(k); });
-    bukaSheet('aturPlot', null, '<div class="sheet-top"><div><h2 style="margin:0">Aturan plotingan</h2><div class="muted small">Dipakai waktu sistem mengusulkan pembagian</div></div>' +
+    bukaSheet('aturPlot', null, '<div class="sheet-top"><div><h2 style="margin:0">Aturan plotingan</h2><div class="muted small">Dipakai waktu sistem memplotkan permintaan</div></div>' +
       '<button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
       '<label class="lb">Maksimal rit satu truk per hari</label><div class="seg" id="apMaks">' + [1, 2, 3].map(function (n) {
         return '<button data-a="pilihSeg" data-v="apMaks" data-k="' + n + '" class="' + (a.maksHari === n ? 'on' : '') + '">' + n + ' rit</button>';
       }).join('') + '</div><label class="lb">Pabrik khusus mobil ' + esc(a.namaMamah) + '</label>' +
-      '<div class="small muted" style="margin-bottom:6px">Pabrik yang dicentang hanya diusulkan ke truk ' + esc(a.namaMamah) + ' (Fuso tetap manual).</div>' +
+      '<div class="small muted" style="margin-bottom:6px">Pabrik yang dicentang hanya diplotkan ke truk ' + esc(a.namaMamah) + ' (Fuso tetap manual). Kalau dipindah ke truk lain, muncul peringatan.</div>' +
       '<div class="cek-pabrik">' + PLOT.pabrik.filter(function (p) { return p.jenis === 'FABA'; }).map(function (p) {
         return '<label><input type="checkbox" value="' + esc(p.kode) + '"' + (p.mamah ? ' checked' : '') + '> ' + esc(p.nama) + '</label>';
       }).join('') + '</div>' + (belum.length ? '<div class="note warn small">Belum ada di master pabrik: ' + esc(belum.join(', ')) + '. Tetap disimpan, otomatis berlaku kalau pabriknya ditambahkan.</div>' : '') +
@@ -5282,7 +5414,7 @@
       PLOT.pabrik.forEach(function (p) { p.mamah = PLOT.aturan.pabrikMamah.indexOf(p.kode) >= 0; });
       tutupSheet();
       render();
-      toast(r.pesan + ' Ketuk "Usulkan pembagian" lagi kalau mau dibagi ulang.');
+      toast(r.pesan + ' Ketuk "Bagi ulang otomatis" kalau mau dibagi ulang.');
     }).catch(function (e) { $('errAturPlot').textContent = e.message; });
   };
 
@@ -5315,27 +5447,70 @@
     var p = kunci.split('|'), jenis = p[0], ref = p.slice(1).join('|');
     return CEK.rutin.concat(CEK.komisi, CEK.lain).filter(function (x) { return x.jenis === jenis && x.ref === ref; })[0];
   }
+  /** Nilai satu pos untuk total: nominal bayar kalau sudah dicentang, kalau belum perkiraannya. */
+  function nilaiCek(x) { return x.bayar && x.bayar.nominal != null && x.bayar.nominal !== '' ? Number(x.bayar.nominal) || 0 : Number(x.perkiraan) || 0; }
+  function jumlahCek(daftar) { return daftar.reduce(function (a, x) { return a + nilaiCek(x); }, 0); }
+  /** Grafik batang total pengeluaran per bulan: kuning = sudah dibayar, kuning muda = belum dicentang (perkiraan). */
+  function grafikPengeluaran(g, pilih) {
+    var W = 340, H = 170, atas = 20, bawah = 22, slot = W / g.length, tinggi = H - atas - bawah;
+    var maks = Math.max.apply(null, g.map(function (x) { return x.total; })) || 1;
+    var label = function (v) { return v >= 1e9 ? String(Math.round(v / 1e8) / 10).replace('.', ',') + ' M' : String(Math.round(v / 1e5) / 10).replace('.', ',') + ' jt'; };
+    var s = '<svg class="grafik" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Total pengeluaran per bulan">' +
+      '<line x1="0" x2="' + W + '" y1="' + (atas + tinggi) + '" y2="' + (atas + tinggi) + '" stroke="#E6E0D2"/>';
+    g.forEach(function (x, i) {
+      var bx = i * slot + 9, bw = slot - 18, cx = i * slot + slot / 2, ini = x.bulan === pilih, dasar = atas + tinggi;
+      var hT = x.total ? Math.max(3, Math.round(x.total / maks * tinggi)) : 0, hB = x.total ? Math.round(x.dibayar / maks * tinggi) : 0;
+      if (hT) {
+        s += '<rect x="' + bx + '" y="' + (dasar - hT) + '" width="' + bw + '" height="' + hT + '" rx="4" fill="#F7E3A1"/>';
+        if (hB) s += '<rect x="' + bx + '" y="' + (dasar - hB) + '" width="' + bw + '" height="' + hB + '" rx="4" fill="#F5B400"/>';
+        if (ini) s += '<rect x="' + bx + '" y="' + (dasar - hT) + '" width="' + bw + '" height="' + hT + '" rx="4" fill="none" stroke="#8A6100" stroke-width="1.5"/>';
+        s += '<text x="' + cx + '" y="' + (dasar - hT - 5) + '" text-anchor="middle" font-size="10" font-weight="' + (ini ? 800 : 700) + '" fill="#1C1A16">' + label(x.total) + '</text>';
+      }
+      s += '<text x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11" font-weight="' + (ini ? 800 : 400) + '" fill="' + (ini ? '#1C1A16' : '#6B6558') + '">' +
+        BULAN_PENDEK[x.bulan % 100 - 1] + '</text>';
+    });
+    return s + '</svg>';
+  }
   VIEWS.ceklis = function () {
     var h = kepala('Ceklis bayar bulanan', S.peran === 'DIREKSI' ? null : 'lainnya');
     if (!CEK) return h + '<div class="card"><div class="kosong">Memuat ceklis…</div></div>';
-    var C = CEK, persen = C.ringkas.total ? Math.round(C.ringkas.sudah / C.ringkas.total * 100) : 0;
-    h += '<div class="card"><div class="row"><button class="btn sm ghost" data-a="cekBulan" data-v="-1" aria-label="Bulan sebelumnya" id="btnCekSebelum">‹</button>' +
-      '<div style="text-align:center"><b>' + esc(namaBulan(C.bulan)) + '</b><div class="small muted">' + C.ringkas.sudah + ' dari ' + C.ringkas.total + ' sudah dibayar</div></div>' +
+    var C = CEK, R = C.ringkas, persen = R.total ? Math.round(R.sudah / R.total * 100) : 0;
+    var g = C.grafik || [], lalu = g.length > 1 ? g[g.length - 2] : null, beda = lalu ? R.nilai - lalu.total : 0, belum = R.total - R.sudah;
+    // 1. total bulan ini di paling atas + banding bulan lalu + grafik 6 bulan
+    h += '<div class="card" id="kartuTotalCeklis"><div class="row"><button class="btn sm ghost" data-a="cekBulan" data-v="-1" aria-label="Bulan sebelumnya" id="btnCekSebelum">‹</button>' +
+      '<div style="text-align:center"><b>' + esc(namaBulan(C.bulan)) + '</b><div class="small muted">' + R.sudah + ' dari ' + R.total + ' pos sudah dibayar</div></div>' +
       '<button class="btn sm ghost" data-a="cekBulan" data-v="1" aria-label="Bulan berikutnya" id="btnCekSesudah">›</button></div>' +
       '<div class="progres"><span style="width:' + persen + '%;background:var(--green)"></span></div>' +
-      '<div class="tile-grid" style="margin:10px 0 0">' + tile('Perkiraan bulan ini', rpRingkas(C.ringkas.perkiraan), C.ringkas.total + ' pos', '') +
-      tile('Sudah dibayar', rpRingkas(C.ringkas.dibayar), C.ringkas.sudah + ' pos', 'hijau') + '</div></div>';
+      '<div class="small muted" style="margin-top:12px">Total pengeluaran ' + esc(NAMA_BULAN[C.bulan % 100 - 1]) + '</div>' +
+      '<div class="angka-besar" id="totalCeklis">' + rpRingkas(R.nilai) + '</div>' +
+      (lalu && lalu.total ? '<div class="banding' + (beda > 0 ? ' naik' : beda < 0 ? ' turun' : '') + '" id="bandingCeklis">' + (beda > 0 ? '▲ Naik ' : beda < 0 ? '▼ Turun ' : 'Sama dengan ') +
+        (beda ? rpRingkas(Math.abs(beda)) + ' (' + Math.round(Math.abs(beda) / lalu.total * 100) + '%) dari ' : '') + esc(NAMA_BULAN[lalu.bulan % 100 - 1]) + '</div>' : '') +
+      '<div class="small muted" style="margin-top:3px">Rutin ' + rpRingkas(R.rutin) + ' · komisi agen ' + rpRingkas(R.komisi) + '</div>' +
+      '<div class="tile-grid" style="margin:12px 0 0">' + tile('Sudah dibayar', rpRingkas(R.dibayar), R.sudah + ' pos', 'hijau') +
+      tile('Belum dibayar', rpRingkas(R.sisa), belum + ' pos' + (belum ? ' · perkiraan' : ''), belum ? 'kuning' : 'hijau') + '</div>' +
+      (g.length ? '<h3 style="margin:16px 0 0">Total pengeluaran 6 bulan</h3>' + grafikPengeluaran(g, C.bulan) +
+        '<div class="legenda"><span><i style="background:#F5B400"></i>sudah dibayar</span><span><i style="background:#F7E3A1"></i>belum dicentang (perkiraan)</span></div>' +
+        '<div class="small muted" style="margin-top:6px">Bulan yang belum dicentang memakai perkiraan dari daftar rutin dan komisi dari tonase.</div>' : '') + '</div>';
     if (!C.bisaUbah) h += '<div class="note info small">Centang bayar dan daftar pengeluaran hanya bisa diubah dari akun Bapak. Di sini cuma lihat.</div>';
+    // 2. pos per kelompok, subtotal di kanan judul
     C.kategori.forEach(function (k) {
       var it = C.rutin.filter(function (r) { return r.kategori === k; });
-      if (it.length) h += '<div class="card"><h2>' + esc(k) + '</h2>' + it.map(itemCeklis).join('') + '</div>';
+      if (it.length) h += '<div class="card"><div class="row" style="margin-bottom:2px"><h2 style="margin:0">' + esc(k) + '</h2><b class="sub-total">' + rp(jumlahCek(it)) + '</b></div>' +
+        it.map(itemCeklis).join('') + '</div>';
     });
-    h += '<div class="card" id="kartuKomisi"><h2>Komisi agen</h2><div class="small muted" style="margin:-4px 0 4px">Dari tonase ' + esc(namaBulan(C.bulanTarik)) +
-      ' × komisi per kg di master pabrik. Isi nominal yang benar-benar ditransfer.</div>' +
+    h += '<div class="card" id="kartuKomisi"><div class="row"><h2 style="margin:0">Komisi agen</h2><b class="sub-total">' + rp(R.komisi) + '</b></div>' +
+      '<div class="small muted" style="margin:2px 0 4px">Dari tonase ' + esc(namaBulan(C.bulanTarik)) + ' × komisi per kg di master pabrik. Isi nominal yang benar-benar ditransfer.</div>' +
       (C.komisi.length ? C.komisi.map(itemCeklis).join('') : '<div class="kosong">Belum ada tonase ' + esc(namaBulan(C.bulanTarik)) + ' untuk pabrik yang ada komisinya.</div>') + '</div>';
     if (C.lain.length) h += '<div class="card"><h2>Centang lain</h2><div class="small muted">Pos yang sudah tidak ada di daftar bulan ini.</div>' + C.lain.map(itemCeklis).join('') + '</div>';
+    // 3. daftar pengeluaran rutin: totalnya di awal
+    var aktif = C.master.filter(function (m) { return m.aktif !== 'TIDAK'; });
+    var bul = aktif.filter(function (m) { return m.frekuensi !== 'TAHUNAN'; }), thn = aktif.filter(function (m) { return m.frekuensi === 'TAHUNAN'; });
+    var nom = function (d) { return d.reduce(function (a, m) { return a + (Number(m.nominal) || 0); }, 0); }, tBul = nom(bul), tThn = nom(thn);
     h += '<div class="card" id="kartuRutin"><div class="row"><h2 style="margin:0">Daftar pengeluaran rutin</h2>' +
       (C.bisaUbah ? '<button class="btn sm" data-a="rutinUbah" data-v="" id="btnRutinBaru">+ Tambah</button>' : '') + '</div>' +
+      '<div class="tile-grid" style="margin:10px 0 6px" id="totalRutin">' + tile('Tiap bulan', rpRingkas(tBul), bul.length + ' pos', '') +
+      tile('Setahun sekali', rpRingkas(tThn), thn.length + ' pos' + (thn.length ? ' · ' + thn.map(function (m) { return BULAN_PENDEK[(m.bulanBayar || 1) - 1]; }).join(', ') : ''), '') + '</div>' +
+      '<div class="small muted" style="margin-bottom:4px">Rata-rata ' + rpRingkas(tBul + tThn / 12) + ' sebulan kalau yang tahunan dicadangkan tiap bulan. Belum termasuk komisi agen.</div>' +
       C.master.map(function (m) {
         return '<div class="pj-baris"' + (C.bisaUbah ? ' data-a="rutinUbah" data-v="' + esc(m.id) + '"' : '') + '><div class="tx"><b' + (m.aktif === 'TIDAK' ? ' class="muted"' : '') + '>' +
           esc(m.nama) + '</b><div class="small muted">' + esc([m.kategori, m.frekuensi === 'TAHUNAN' ? 'tahunan, ' + NAMA_BULAN[(m.bulanBayar || 1) - 1] : 'bulanan',
@@ -5510,13 +5685,23 @@
     }
     if (view === 'tagihanBaru') { bacaFormTagihan(); previewTagihan(); }
     if (view === 'plot' && PLOT && el.hasAttribute && el.hasAttribute('data-plot-truk')) {
-      var rp1 = PLOT.baris[Number(el.getAttribute('data-plot-truk'))], tk = trukPlot(el.value);
-      rp1.nopol = el.value;
-      rp1.supir = tk ? tk.supir : '';
-      rp1.cara = el.value ? 'MANUAL' : '';
-      rp1.alasan = '';
-      PLOT.ubah = true;
-      render();
+      var rp1 = PLOT.baris[Number(el.getAttribute('data-plot-truk'))], tk = trukPlot(el.value), nopolBaru = el.value;
+      var pasangTruk = function () {
+        rp1.nopol = nopolBaru;
+        rp1.supir = tk ? tk.supir : '';
+        rp1.cara = nopolBaru ? 'MANUAL' : '';
+        rp1.alasan = '';
+        PLOT.ubah = true;
+        render();
+      };
+      // pabrik khusus mobil Mamah dipindah ke truk pemilik lain: peringatan dulu, Bapak yang memutuskan
+      if (tk && PLOT.aturan.pabrikMamah.indexOf(rp1.pabrik) >= 0 && tk.pemilik !== PLOT.aturan.pemilikMamah) {
+        SUARA.gagal();
+        getar([50, 40, 50]);
+        dialog({ judul: 'Pabrik khusus mobil ' + PLOT.aturan.namaMamah, isi: (rp1.namaPabrik || rp1.pabrik) + ' seharusnya ditarik mobil ' + PLOT.aturan.namaMamah + '. ' +
+          tk.nopol + ' punya ' + tk.namaPemilik + '.\n\nTetap pakai truk ini?', ok: 'Tetap pakai', batal: 'Jangan', bahaya: true })
+          .then(function (ya) { if (ya) pasangTruk(); else render(); });
+      } else pasangTruk();
     }
     if (view === 'potongan' && el.id === 'ptPenerima') F.penerima = el.value;
     if (view === 'pajakForm' && el.id === 'pjJenis') { bacaFormPajak(); render(); }
@@ -5602,6 +5787,7 @@
       garasiLihat = null;
       ARMADA = null;
       PLOT = null;
+      HARI_PLOT = '';
       CEK = null;
       tabTruk = null;
       bulanTruk = null;
