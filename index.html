@@ -557,7 +557,7 @@
   .denah [data-a] { cursor: pointer; }
   .lampu-teks { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; }
   .lampu-teks i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .dok-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .dok-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
   .dok-grid > div { border-radius: 12px; padding: 8px 9px; background: var(--gray-soft); }
   .dok-grid .l { font-size: 11.5px; font-weight: 800; color: var(--muted); }
   .dok-grid .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
@@ -603,6 +603,47 @@
   .balap .finis { position: absolute; right: 0; top: 0; bottom: 0; width: 6px;
     background: repeating-linear-gradient(0deg, #141414 0 6px, #fff 6px 12px); opacity: .8; border-radius: 2px; }
   @keyframes maju { from { left: 0; } }
+  /* v1.5 tanggal rit per pabrik, ban dalam, plotingan supir, ceklis bayar */
+  .pj-pabrik { padding: 10px 0; border-top: 1px solid var(--line); }
+  .pj-pabrik .row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tgl-rit { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .tgl-rit span { display: inline-flex; flex-direction: column; align-items: center; min-width: 46px; padding: 4px 6px; border-radius: 9px;
+    background: var(--brand-soft); font-size: 10.5px; color: var(--brand-2); font-weight: 700; line-height: 1.2; }
+  .tgl-rit span b { font-size: 15px; color: var(--ink); }
+  .tgl-rit span small { font-size: 10px; color: var(--muted); font-weight: 600; }
+  .ban-dalam { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 13.5px; }
+  .ban-dalam .baris span:first-child { white-space: nowrap; font-weight: 700; }
+  .ban-dalam .baris .n { text-align: right; white-space: normal; color: var(--muted); }
+  .libur-baris { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 2px; }
+  .chip-libur { border: 0; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; background: var(--red-soft); color: var(--red); cursor: pointer; }
+  .plot-baris { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 47%) 30px; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); }
+  .plot-baris .tx { min-width: 0; font-size: 14px; line-height: 1.3; }
+  .plot-baris .tx b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plot-baris .bdg { font-size: 10.5px; padding: 1px 7px; margin: 3px 4px 0 0; }
+  .plot-baris select.in { padding: 8px 5px; font-size: 13px; }
+  .plot-baris.tanpa-truk select.in { border-color: #F1D59A; background: #FFF8E8; }
+  .plot-baris .alasan { font-size: 12px; color: var(--amber); margin-top: 2px; }
+  .btn-x { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; color: var(--muted); font-size: 17px; line-height: 1;
+    cursor: pointer; padding: 0; }
+  .plot-tambah { display: grid; grid-template-columns: minmax(0, 1fr) 58px auto; gap: 8px; align-items: center; margin-top: 10px; }
+  .plot-tambah select.in, .plot-tambah input.in { padding: 9px 7px; font-size: 13.5px; }
+  .plot-rekap th { text-align: center; }
+  .plot-rekap td.n { text-align: center; }
+  .plot-rekap tr.redup td { color: var(--muted); }
+  .sebaran { font-size: 13px; padding: 7px 0; border-top: 1px solid var(--line); line-height: 1.45; }
+  .cek-bayar { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .cek-bayar:first-of-type { border-top: 0; }
+  .cek-bayar .tx { flex: 1; min-width: 0; }
+  .cek-bayar .d { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+  .cek-bayar .kanan { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cek-bulat { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #CFC7B3; flex: none; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #fff; margin-top: 1px; font-size: 15px; }
+  .cek-bayar.sudah .cek-bulat { background: var(--green); border-color: var(--green); }
+  .cek-bayar.sudah .tx b { color: var(--muted); }
+  .cek-pabrik { max-height: 42vh; overflow-y: auto; border: 1.5px solid var(--line); border-radius: 11px; padding: 4px 10px; }
+  .cek-pabrik label { display: flex; gap: 9px; align-items: center; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--line); }
+  .cek-pabrik label:first-child { border-top: 0; }
+  .cek-pabrik input { width: 18px; height: 18px; accent-color: var(--brand-dark); }
   .konvoi { display: flex; gap: 4px; margin-top: 10px; overflow: hidden; }
   .konvoi svg { width: 64px; flex: none; animation: trukMasuk 1.3s cubic-bezier(.2,.75,.25,1) both; }
   .lacak { padding: 11px 0; border-top: 1px solid var(--line); }
@@ -813,9 +854,12 @@
   var NAMA_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September',
     'Oktober', 'November', 'Desember'];
   var BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  var JENIS_RAWAT = [['BAN', 'Ban'], ['OLI', 'Ganti oli'], ['REM', 'Rem & pirodo'], ['KOPLING', 'Kopling'], ['AKI', 'Aki'],
-    ['PER', 'Per & kaki-kaki'], ['VELG', 'Velg'], ['BAK', 'Bak & plat'], ['TERPAL', 'Terpal'], ['SERVIS', 'Servis & part lain'],
-    ['STNK', 'Pajak STNK'], ['KIR', 'Uji KIR'], ['LAINNYA', 'Lainnya']];
+  var JENIS_RAWAT = [['BAN', 'Ban'], ['BANDALAM', 'Ban dalam'], ['OLI', 'Ganti oli'], ['REM', 'Rem & pirodo'], ['KOPLING', 'Kopling'],
+    ['AKI', 'Aki'], ['PER', 'Per & kaki-kaki'], ['VELG', 'Velg'], ['BAK', 'Bak & plat'], ['TERPAL', 'Terpal'], ['SERVIS', 'Servis & part lain'],
+    ['STNK', 'Pajak STNK'], ['STNK5', 'Perpanjangan STNK'], ['KIR', 'Uji KIR'], ['LAINNYA', 'Lainnya']];
+  var TINDAKAN_BANDALAM = [['TAMBAL', 'Tambal'], ['GANTI', 'Ganti baru']];
+  var MASA_SURAT = { STNK: ['stnk', 12], STNK5: ['stnk5', 60], KIR: ['kir', 6] };
+  var ALASAN_LIBUR = [['IZIN', 'Izin'], ['SAKIT', 'Sakit'], ['SERVIS', 'Servis'], ['LAIN', 'Lainnya']];
   
   function tarifPemilik(tarif, komisi) {
     return Math.round((tarif - komisi) * 100) / 100;
@@ -1020,8 +1064,10 @@
   }
   
   function statusDokumen(truk, rawat, hariIni) {
+    // perpanjangan STNK 5 tahunan juga membayar pajak tahunannya
     var akhir = function (j) {
-      var r = rawat.filter(function (x) { return x.jenis === j; }).map(function (x) { return x.tanggal; }).sort();
+      var jenis = j === 'STNK' ? ['STNK', 'STNK5'] : [j];
+      var r = rawat.filter(function (x) { return jenis.indexOf(x.jenis) >= 0; }).map(function (x) { return x.tanggal; }).sort();
       return r[r.length - 1] || '';
     };
     var item = function (kode, nama, pasti, dari, bulan) {
@@ -1031,8 +1077,8 @@
       return { kode: kode, nama: nama, jatuhTempo: tgl, sisa: sisa, perkiraan: !pasti, terakhir: dari,
         status: sisa < 0 ? 'LEWAT' : sisa <= 30 ? 'DEKAT' : 'AMAN' };
     };
-    return [item('STNK', 'Pajak STNK', truk.stnk, akhir('STNK'), 12), item('KIR', 'Uji KIR', truk.kir, akhir('KIR'), 6),
-      item('IZIN', 'Izin angkut B3', truk.izin, '', 0)];
+    return [item('STNK', 'Pajak STNK', truk.stnk, akhir('STNK'), 12), item('STNK5', 'STNK 5 tahunan', truk.stnk5, akhir('STNK5'), 60),
+      item('KIR', 'Uji KIR', truk.kir, akhir('KIR'), 6), item('IZIN', 'Izin angkut B3', truk.izin, '', 0)];
   }
   
   function komponenRawat(rawat, hariIni) {
@@ -1067,6 +1113,107 @@
       x.cocok = x.ritRekap === null ? null : x.ritRekap === x.ritRit && Math.abs(x.kgRekap - x.kgRit) < 1;
       return x;
     });
+  }
+  
+  function statusBanDalam(rawat, roda, hariIni) {
+    return posisiBan(roda).map(function (pos) {
+      var r = rawat.filter(function (x) { return x.jenis === 'BANDALAM' && x.posisi === pos; })
+        .sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
+      if (!r.length) return { posisi: pos, ada: false, status: 'KOSONG', tambal: 0 };
+      var ganti = r.filter(function (x) { return x.tindakan === 'GANTI'; }), akhirGanti = ganti.length ? ganti[ganti.length - 1].tanggal : '';
+      var tambal = r.filter(function (x) { return x.tindakan !== 'GANTI' && (!akhirGanti || x.tanggal >= akhirGanti); }).length;
+      var akhir = r[r.length - 1];
+      return {
+        posisi: pos, ada: true, ganti: akhirGanti, tambal: tambal, terakhir: akhir.tanggal, tindakan: akhir.tindakan === 'GANTI' ? 'GANTI' : 'TAMBAL',
+        hari: hariAntara(akhir.tanggal, hariIni), riwayat: r.length, status: tambal >= 3 ? 'WASPADA' : 'AMAN'
+      };
+    });
+  }
+  
+  function labelTindakan(kode) {
+    for (var i = 0; i < TINDAKAN_BANDALAM.length; i++) if (TINDAKAN_BANDALAM[i][0] === kode) return TINDAKAN_BANDALAM[i][1];
+    return kode || '';
+  }
+  
+  function jenisPlot(p) {
+    if (!p) return 'FABA';
+    if (p.jenis === 'SLUDGE') return 'SLUDGE';
+    return /KLINIK|RUMAH SAKIT|\bRS\b|PUSKESMAS|MEDIS/i.test([p.kode, p.nama, p.namaKontrabon].join(' ')) ? 'MEDIS' : 'FABA';
+  }
+  
+  function seninDari(s) {
+    var d = new Date(Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10))));
+    return tambahHariTgl(s, -((d.getUTCDay() + 6) % 7));
+  }
+  
+  function usulkanPlot(baris, truk, hitung, aturan) {
+    var hr = {}, mg = {}, bl = {}, pb = {}, mamah = aturan.pabrikMamah || [], maks = aturan.maksHari || 2, libur = aturan.libur || {};
+    var kb = function (tgl) { return String(tgl).slice(0, 4) + String(tgl).slice(5, 7); };
+    Object.keys(hitung.bulan || {}).forEach(function (k) { bl[k] = hitung.bulan[k]; });
+    Object.keys(hitung.pabrik || {}).forEach(function (k) { pb[k] = hitung.pabrik[k]; });
+    var catat = function (r) {
+      var b = kb(r.tanggal);
+      hr[r.tanggal + '|' + r.nopol] = (hr[r.tanggal + '|' + r.nopol] || 0) + 1;
+      mg[r.nopol] = (mg[r.nopol] || 0) + 1;
+      bl[b + '|' + r.nopol] = (bl[b + '|' + r.nopol] || 0) + 1;
+      pb[b + '|' + r.nopol + '|' + r.pabrik] = (pb[b + '|' + r.nopol + '|' + r.pabrik] || 0) + 1;
+    };
+    baris.forEach(function (r) { if (r.nopol) catat(r); });
+    var otomatis = truk.filter(function (t) { return (t.plot || 'OTOMATIS') === 'OTOMATIS'; });
+    var khusus = function (r) { return mamah.indexOf(r.pabrik) >= 0 ? 1 : 0; };
+    baris.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !x.r.nopol; }).sort(function (a, b) {
+      // per hari; pabrik khusus mobil Mamah dibagi duluan supaya mobil Mamah tidak habis untuk pabrik lain
+      return a.r.tanggal < b.r.tanggal ? -1 : a.r.tanggal > b.r.tanggal ? 1 : (khusus(b.r) - khusus(a.r)) || a.i - b.i;
+    }).forEach(function (x) {
+      var r = x.r;
+      r.alasan = '';
+      if (r.jenis === 'SLUDGE' || r.jenis === 'MEDIS') { r.alasan = 'Sludge & medis dipilih manual'; return; }
+      var calon = otomatis.filter(function (t) {
+        return !libur[r.tanggal + '|' + t.nopol] && (!khusus(r) || t.pemilik === aturan.pemilikMamah) && (hr[r.tanggal + '|' + t.nopol] || 0) < maks;
+      });
+      if (!calon.length) { r.alasan = khusus(r) ? 'Mobil Mamah penuh atau libur' : 'Semua truk penuh atau libur'; return; }
+      var skor = function (t) {
+        var b = kb(r.tanggal);
+        return [hr[r.tanggal + '|' + t.nopol] || 0, mg[t.nopol] || 0, pb[b + '|' + t.nopol + '|' + r.pabrik] || 0, bl[b + '|' + t.nopol] || 0];
+      };
+      calon.sort(function (a, b) {
+        var sa = skor(a), sb = skor(b);
+        for (var i = 0; i < sa.length; i++) if (sa[i] !== sb[i]) return sa[i] - sb[i];
+        return a.nopol < b.nopol ? -1 : 1;
+      });
+      r.nopol = calon[0].nopol;
+      r.supir = calon[0].supir || '';
+      r.cara = 'OTOMATIS';
+      catat(r);
+    });
+    // Tukar truk antar rit usulan di hari yang sama kalau sebaran pabrik jadi lebih rata. Jumlah rit tiap truk per hari,
+    // minggu, dan bulan tidak berubah; yang berubah hanya truk mana menarik pabrik mana.
+    var oto = baris.filter(function (r) { return r.cara === 'OTOMATIS' && r.nopol; }), pem = {};
+    truk.forEach(function (t) { pem[t.nopol] = t; });
+    var boleh = function (nopol, r) { return !khusus(r) || pem[nopol].pemilik === aturan.pemilikMamah; };
+    for (var putaran = 0, ulang = true; ulang && putaran < 20; putaran++) {
+      ulang = false;
+      for (var i = 0; i < oto.length; i++) {
+        for (var j = i + 1; j < oto.length; j++) {
+          var a = oto[i], c = oto[j];
+          if (a.tanggal !== c.tanggal || a.nopol === c.nopol || a.pabrik === c.pabrik || !boleh(a.nopol, c) || !boleh(c.nopol, a)) continue;
+          var b = kb(a.tanggal), k = function (n, p) { return pb[b + '|' + n + '|' + p] || 0; };
+          var a1 = k(a.nopol, a.pabrik), a2 = k(a.nopol, c.pabrik), c2 = k(c.nopol, c.pabrik), c1 = k(c.nopol, a.pabrik);
+          if (a1 - a2 + c2 - c1 <= 2) continue;
+          pb[b + '|' + a.nopol + '|' + a.pabrik] = a1 - 1;
+          pb[b + '|' + a.nopol + '|' + c.pabrik] = a2 + 1;
+          pb[b + '|' + c.nopol + '|' + c.pabrik] = c2 - 1;
+          pb[b + '|' + c.nopol + '|' + a.pabrik] = c1 + 1;
+          var n = a.nopol;
+          a.nopol = c.nopol;
+          c.nopol = n;
+          a.supir = pem[a.nopol].supir || '';
+          c.supir = pem[c.nopol].supir || '';
+          ulang = true;
+        }
+      }
+    }
+    return baris;
   }
 
   // ================= pembaca rekap PDF (disalin otomatis dari _dev/rekap_pdf.js)
@@ -1865,7 +2012,7 @@
     KEUANGAN: [['beranda', 'Beranda'], ['tagihan', 'Tagihan'], ['cair', 'Uang cair'], ['slip', 'Slip'], ['lainnya', 'Lainnya']],
     ADMIN: [['beranda', 'Beranda'], ['dasbor', 'Ringkasan'], ['tagihan', 'Tagihan'], ['slip', 'Slip'], ['lainnya', 'Lainnya']],
     PENYETUJU: [['beranda', 'Beranda'], ['setuju', 'Persetujuan'], ['dasbor', 'Ringkasan'], ['rekap', 'Rekap'], ['lainnya', 'Lainnya']],
-    DIREKSI: [['dasbor', 'Ringkasan'], ['rekap', 'Rekap'], ['lainnya', 'Lainnya']],
+    DIREKSI: [['dasbor', 'Ringkasan'], ['plot', 'Plot supir'], ['ceklis', 'Ceklis'], ['rekap', 'Rekap'], ['lainnya', 'Lainnya']],
     PEMILIK: [['garasi', 'Garasi'], ['uang', 'Uang'], ['rawat', 'Perawatan'], ['lainnya', 'Lainnya']]
   };
   var VIEW_PEMILIK = ['garasi', 'uang', 'rawat', 'rawatForm', 'trukForm', 'lainnya', 'gantiPin'];
@@ -1877,7 +2024,7 @@
     return INDUK[v];
   }
   var INDUK = { tagihanBaru: 'tagihan', transfer: 'slip', pabrik: 'lainnya', pabrikForm: 'lainnya', potongan: 'lainnya',
-    rekap: 'lainnya', panduan: 'lainnya', cairForm: 'cair', gantiPin: 'lainnya', impor: 'tagihan', pajakForm: 'dasbor' };
+    rekap: 'lainnya', panduan: 'lainnya', cairForm: 'cair', gantiPin: 'lainnya', impor: 'tagihan', pajakForm: 'dasbor', plot: 'lainnya', ceklis: 'lainnya' };
   var IKON = {
     beranda: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>',
     tagihan: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h4"/>',
@@ -1890,7 +2037,9 @@
     dasbor: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.4A9 9 0 0 1 20.6 9H15z"/>',
     garasi: '<path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4.2l3.3 3.6V16h-7.5"/><circle cx="6.5" cy="17.3" r="1.9"/><circle cx="17.2" cy="17.3" r="1.9"/>',
     uang: '<path d="M4 7.5V18a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-1.5zM4 7.5A2 2 0 0 1 6 5.5h11V9"/><circle cx="16" cy="14.5" r="1.4"/>',
-    rawat: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>'
+    rawat: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+    plot: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17.5h7"/>',
+    ceklis: '<path d="M4 6.5l1.5 1.5L8.5 5M4 12.5l1.5 1.5 3-3M4 18.5l1.5 1.5 3-3"/><path d="M11 7h9M11 13h9M11 19h9"/>'
   };
   function renderNav() {
     var r = S.ringkas, daftar = NAV[S.peran] || NAV.KEUANGAN;
@@ -2789,6 +2938,7 @@
       menu.push(['rekap', 'Rekap & laporan bulanan']);
     }
     if (S.peran === 'ADMIN' && S.ringkas.menunggu.n) menu.push(['setuju', 'Persetujuan (kalau ' + nPenyetuju() + ' berhalangan)']);
+    if (S.peran === 'ADMIN') { menu.push(['plot', 'Plotingan supir']); menu.push(['ceklis', 'Ceklis bayar Bapak']); }
     if (S.peran !== 'PENYETUJU') menu.unshift(['armada', 'Armada truk & rit per truk']);
     menu.push(['panduan', 'Panduan singkat']);
     menu.push(['gantiPin', 'Ganti PIN saya']);
@@ -3309,6 +3459,8 @@
     TERPAL: '<path d="M3 9c3-3 6 3 9 0s6 3 9 0v8c-3 3-6-3-9 0s-6-3-9 0z"/>',
     SERVIS: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
     STNK: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+    STNK5: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7.5h8M8 11h4"/><path d="M15.5 16a2.5 2.5 0 1 1-1-2"/><path d="M14.7 12.3l-.2 1.8 1.8.3"/>',
+    BANDALAM: '<circle cx="12" cy="11" r="8"/><circle cx="12" cy="11" r="4.2"/><path d="M12 19v2.5M10.5 21.5h3"/>',
     KIR: '<path d="M9 4h6v3H9z"/><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M8.5 13.5l2.5 2.5 4.5-5"/>',
     IZIN: '<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
     LAINNYA: '<circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/>'
@@ -3406,7 +3558,6 @@
   function garasiTruk(g, t) {
     var bl = t.bulanan, pilih = bulanPilihan(bl), b = bl.filter(function (x) { return x.bulan === pilih; })[0];
     var rawat = g.rawat.filter(function (r) { return r.truk === t.nopol; }), hari = hariIniG();
-    var ritBulan = g.rit.filter(function (r) { return r.nopol === t.nopol && Number(r.tanggal.slice(0, 4) + r.tanggal.slice(5, 7)) === pilih; });
     var adaRit = bl.filter(function (x) { return x.rit > 0; }), acuan = adaRit.length ? jumlah(adaRit.slice(-6), 'hak') / Math.min(6, adaRit.length) : 0;
     var h = '';
     // 1. kabin: truk masuk ke jalan, angka bulan terpilih
@@ -3449,6 +3600,14 @@
           (x.ada ? 'Dipasang ' + tglIndo(x.pasang) + ' · ' + String(x.umur).replace('.', ',') + ' bln' + (x.rata ? ' (biasa ' + String(x.rata).replace('.', ',') + ' bln)' : '') +
             '<br>Perkiraan ganti ' + tglIndo(x.perkiraan) : 'Belum ada catatan ganti ban') + '</div></div>';
       }).join('') + '</div></div>';
+    var dalam = statusBanDalam(rawat, t.roda, hari).filter(function (x) { return x.ada; });
+    if (dalam.length) {
+      h += '<div class="ban-dalam" id="kartuBanDalam"><b>Ban dalam</b>' + dalam.map(function (x) {
+        return '<div class="baris"><span>' + esc(x.posisi) + '</span><span class="n">' +
+          (x.ganti ? 'ganti baru ' + tglIndo(x.ganti) + (x.tambal ? ', sesudahnya ditambal ' + x.tambal + '×' : '') : 'ditambal ' + x.tambal + '×') +
+          (x.status === 'WASPADA' ? ' <span class="bdg amber">siap-siap ganti</span>' : '') + '</span></div>';
+      }).join('') + '</div>';
+    }
     h += '<div class="sehat" style="margin-top:12px;align-items:center"><div style="max-width:150px">' + svgOli(oli) + '</div><div><b>Oli mesin</b><div class="small muted">' +
       (oli.ada ? 'Ganti terakhir ' + tglIndo(oli.terakhir) + ', ' + oli.hari + ' hari lalu.<br>' + (oli.rata ? 'Truk ini biasa ganti tiap ' + oli.rata + ' hari.' :
         'Patokan ganti tiap ' + oli.interval + ' hari.') + '<br><b style="color:' + WARNA_STATUS[oli.status] + '">' + (oli.sisa > 0 ? 'Ganti lagi sekitar ' + tglIndo(oli.perkiraan) :
@@ -3461,19 +3620,19 @@
       return '<div>' + ikonRawat(k.jenis) + '<span><b>' + esc(k.nama) + '</b><small>' + (k.hari < 31 ? k.hari + ' hari lalu' : Math.round(k.hari / 30.4) + ' bln lalu') +
         (k.jumlah > 1 ? ' · ' + k.jumlah + ' kali' : '') + '</small></span></div>';
     }).join('') + '</div></div>';
-    // 4. perjalanan bulan terpilih
+    // 4. perjalanan bulan terpilih: tiap pabrik dengan tanggal tiap ritnya (v1.5, semua bulan)
     h += '<div class="card" id="kartuJalan"><h2>Perjalanan ' + esc(namaBulan(pilih)) + '</h2>';
-    if (ritBulan.length) {
-      h += kalenderRit(pilih, ritBulan) + ritBulan.slice(0, 40).map(function (r) {
-        var d = new Date(Date.UTC(Number(r.tanggal.slice(0, 4)), Number(r.tanggal.slice(5, 7)) - 1, Number(r.tanggal.slice(8, 10))));
-        return '<div class="trip"><div class="tg"><b>' + Number(r.tanggal.slice(8, 10)) + '</b><small>' + ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][d.getUTCDay()] +
-          '</small></div><div class="tx"><b>' + esc(r.namaPabrik) + '</b><div class="d">' + (r.jenis === 'SLUDGE' ? 'Sludge · ' : '') + ribu(r.kg) + ' kg · ' +
-          esc(judulKata(r.supir)) + '</div></div></div>';
+    if (b.pabrik.length) {
+      var hariRit = [], namaHr = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      var tglKe = function (d) { return String(pilih).slice(0, 4) + '-' + String(pilih).slice(4, 6) + '-' + (d < 10 ? '0' : '') + d; };
+      b.pabrik.forEach(function (p) { (p.tgl || []).forEach(function (x) { hariRit.push({ tanggal: tglKe(x[0]), kg: x[1] }); }); });
+      h += kalenderRit(pilih, hariRit) + b.pabrik.map(function (p) {
+        return '<div class="pj-pabrik"><div class="row"><b>' + esc(p.nama) + '</b><span class="small muted" style="white-space:nowrap">' + p.rit + ' rit · ' + ton(p.kg) +
+          ' t</span></div>' + (p.jenis === 'SLUDGE' ? '<span class="bdg amber" style="margin-top:4px">sludge</span>' : '') + '<div class="tgl-rit">' + (p.tgl || []).map(function (x) {
+            var d = new Date(Date.UTC(Math.floor(pilih / 100), pilih % 100 - 1, x[0])).getUTCDay();
+            return '<span title="' + ribu(x[1]) + ' kg"><b>' + x[0] + '</b>' + namaHr[d] + '<small>' + ton(x[1]) + ' t</small></span>';
+          }).join('') + '</div></div>';
       }).join('');
-    } else if (b.pabrik.length) {
-      h += b.pabrik.map(function (p) {
-        return '<div class="baris"><span>' + esc(p.nama) + ' · ' + p.rit + ' rit</span><span class="n">' + ribu(p.kg) + ' kg</span></div>';
-      }).join('') + '<div class="small muted">Rincian harian hanya ditampilkan untuk 2 bulan terakhir.</div>';
     } else {
       h += '<div class="muted small">Belum ada rit tercatat.</div>';
     }
@@ -3544,6 +3703,9 @@
       statusBan(rw, t.roda, hari, g.set).forEach(function (b) {
         if (b.ada && b.status !== 'AMAN') awas.push(['BAN', t, 'Ban ' + b.posisi.toLowerCase() + ' ' + String(b.umur).replace('.', ',') + ' bln, ' +
           (b.status === 'GANTI' ? 'waktunya ganti' : 'siap-siap ganti'), b.status]);
+      });
+      statusBanDalam(rw, t.roda, hari).forEach(function (b) {
+        if (b.status === 'WASPADA') awas.push(['BANDALAM', t, 'Ban dalam ' + b.posisi.toLowerCase() + ' sudah ditambal ' + b.tambal + '×, siap-siap ganti', 'WASPADA']);
       });
       statusDokumen(t, rw, hari).forEach(function (d) {
         if (d.status === 'LEWAT' || d.status === 'DEKAT') awas.push([d.kode === 'IZIN' ? 'IZIN' : d.kode, t, d.nama + (d.sisa < 0 ? ' lewat ' + (-d.sisa) + ' hari' : ' ' + d.sisa + ' hari lagi'), d.status]);
@@ -3621,7 +3783,16 @@
   function mulaiFormRawat(nopol) {
     var g = dataG();
     F = { jenisForm: 'rawat', truk: nopol || (g.truk.length === 1 ? g.truk[0].nopol : ''), jenis: '', posisi: '', tanggal: hariIniG(), biaya: '', km: '', bengkel: '', uraian: '', catatan: '',
-      foto: null, kembali: view === 'rawatForm' ? 'garasi' : view };
+      foto: null, tindakan: '', berlaku: '', kembali: view === 'rawatForm' ? 'garasi' : view };
+  }
+  /** Usulan tanggal berlaku baru untuk STNK / perpanjangan STNK / KIR: lanjut dari tanggal lama di data truk, kalau kosong dari tanggal bayar. */
+  function berlakuAwal(nopol, jenis, tanggal) {
+    var m = MASA_SURAT[jenis];
+    if (!m || !tanggal) return '';
+    var t = dataG().truk.filter(function (x) { return x.nopol === nopol; })[0], lama = t ? t[m[0]] : '';
+    var baru = tambahBulanTgl(lama && lama >= tambahBulanTgl(tanggal, -m[1]) ? lama : tanggal, m[1]);
+    while (baru <= tanggal) baru = tambahBulanTgl(baru, m[1]);
+    return baru;
   }
   VIEWS.rawatForm = function () {
     var g = dataG(), t = g.truk.filter(function (x) { return x.nopol === F.truk; })[0];
@@ -3634,12 +3805,24 @@
     h += '<label class="lb">Jenis</label><div class="jenis-grid">' + JENIS_RAWAT.map(function (j) {
       return '<button data-a="rawatJenis" data-v="' + j[0] + '" class="' + (F.jenis === j[0] ? 'on' : '') + '" id="rj-' + j[0] + '">' + ikonRawat(j[0]) + esc(j[1]) + '</button>';
     }).join('') + '</div>';
-    if (F.jenis === 'BAN' && t) {
-      h += '<label class="lb">Posisi ban yang diganti (ketuk di gambar)</label><div class="sehat"><div>' + svgDenahBan(t.roda, posisiBan(t.roda).map(function (p) {
-        return { posisi: p, status: F.posisi === p ? 'WASPADA' : 'KOSONG' };
-      })) + '</div><div>' + posisiBan(t.roda).map(function (p) {
-        return '<div class="radio' + (F.posisi === p ? ' on' : '') + '" data-a="banPosisi" data-v="' + esc(p) + '"><span class="o"></span><div><b>' + esc(p) + '</b><div class="small muted">biasanya 2 ban</div></div></div>';
+    if ((F.jenis === 'BAN' || F.jenis === 'BANDALAM') && t) {
+      h += '<label class="lb">' + (F.jenis === 'BAN' ? 'Posisi ban yang diganti' : 'Posisi ban dalamnya') + ' (ketuk di gambar)</label><div class="sehat"><div>' +
+        svgDenahBan(t.roda, posisiBan(t.roda).map(function (p) {
+          return { posisi: p, status: F.posisi === p ? 'WASPADA' : 'KOSONG' };
+        })) + '</div><div>' + posisiBan(t.roda).map(function (p) {
+        return '<div class="radio' + (F.posisi === p ? ' on' : '') + '" data-a="banPosisi" data-v="' + esc(p) + '"><span class="o"></span><div><b>' + esc(p) + '</b><div class="small muted">' +
+          (F.jenis === 'BAN' ? 'biasanya 2 ban' : 'ban dalam di posisi ini') + '</div></div></div>';
       }).join('') + '</div></div>';
+    }
+    if (F.jenis === 'BANDALAM') {
+      h += '<label class="lb">Ban dalamnya</label><div class="seg">' + TINDAKAN_BANDALAM.map(function (x) {
+        return '<button data-a="rawatTindakan" data-v="' + x[0] + '" class="' + (F.tindakan === x[0] ? 'on' : '') + '" id="rt-' + x[0] + '">' + esc(x[1]) + '</button>';
+      }).join('') + '</div><div class="small muted" style="margin-top:6px">Biasanya ditambal dulu. Kalau sudah 3 kali ditambal, aplikasi mengingatkan untuk ganti baru.</div>';
+    }
+    if (MASA_SURAT[F.jenis]) {
+      var namaSurat = F.jenis === 'KIR' ? 'KIR' : F.jenis === 'STNK5' ? 'STNK 5 tahunan' : 'Pajak STNK';
+      h += '<label class="lb" for="rwBerlaku">' + namaSurat + ' berlaku sampai (baru)</label><input id="rwBerlaku" class="in" type="date" value="' + esc(F.berlaku) + '">' +
+        '<div class="small muted" style="margin-top:6px">Tanggal ini langsung mengganti tanggal ' + namaSurat + ' di data truk. Kosongkan kalau belum tahu.</div>';
     }
     h += '<div class="grid2"><div><label class="lb" for="rwTanggal">Tanggal</label><input id="rwTanggal" class="in" type="date" value="' + esc(F.tanggal) + '" max="' + hariIniG() + '"></div>' +
       '<div><label class="lb" for="rwBiaya">Biaya (Rp)</label><input id="rwBiaya" class="in uang" inputmode="numeric" value="' + esc(F.biaya) + '" placeholder="kosongkan kalau belum tahu"></div></div>';
@@ -3652,6 +3835,7 @@
   };
   function bacaFormRawat() {
     if (!$('rwTanggal')) return;
+    if ($('rwBerlaku')) F.berlaku = $('rwBerlaku').value;
     F.tanggal = $('rwTanggal').value;
     F.biaya = $('rwBiaya').value;
     F.uraian = $('rwUraian').value;
@@ -3663,8 +3847,8 @@
   function mulaiFormTruk(t) {
     t = t || {};
     F = { jenisForm: 'truk', baru: !t.nopol, nopol: t.nopol || '', pemilik: t.pemilik || '', nama: t.nama || '', merk: t.merk || '', tahun: t.tahun || '', supir: t.supir || '',
-      roda: t.roda || 6, warna: t.warna || 'emas', stnk: t.stnk || '', kir: t.kir || '', izin: t.izin || '', odometer: t.odometer == null ? '' : t.odometer,
-      aktif: t.aktif || 'YA', catatan: t.catatan || '', kembali: view };
+      roda: t.roda || 6, warna: t.warna || 'emas', stnk: t.stnk || '', stnk5: t.stnk5 || '', kir: t.kir || '', izin: t.izin || '', odometer: t.odometer == null ? '' : t.odometer,
+      aktif: t.aktif || 'YA', plot: t.plot || 'OTOMATIS', catatan: t.catatan || '', kembali: view };
   }
   VIEWS.trukForm = function () {
     var admin = S.peran !== 'PEMILIK';
@@ -3687,12 +3871,16 @@
       return '<button data-a="trukRoda" data-v="' + r[0] + '" class="' + (Number(F.roda) === r[0] ? 'on' : '') + '">' + r[1] + '</button>';
     }).join('') + '</div>';
     h += '<div class="grid2"><div><label class="lb" for="tkStnk">Pajak STNK s/d</label><input id="tkStnk" class="in" type="date" value="' + esc(F.stnk) + '"></div>' +
-      '<div><label class="lb" for="tkKir">KIR s/d</label><input id="tkKir" class="in" type="date" value="' + esc(F.kir) + '"></div></div>';
-    h += '<div class="grid2"><div><label class="lb" for="tkIzin">Izin angkut B3 s/d</label><input id="tkIzin" class="in" type="date" value="' + esc(F.izin) + '"></div>' +
-      '<div><label class="lb" for="tkOdo">Odometer (km)</label><input id="tkOdo" class="in uang" inputmode="numeric" value="' + esc(F.odometer) + '"></div></div>';
-    h += '<div class="small muted" style="margin-top:6px">STNK & KIR kosong = diperkirakan dari catatan bayar terakhir (STNK + 1 tahun, KIR + 6 bulan).</div>';
+      '<div><label class="lb" for="tkStnk5">STNK 5 tahunan s/d</label><input id="tkStnk5" class="in" type="date" value="' + esc(F.stnk5) + '"></div></div>';
+    h += '<div class="grid2"><div><label class="lb" for="tkKir">KIR s/d</label><input id="tkKir" class="in" type="date" value="' + esc(F.kir) + '"></div>' +
+      '<div><label class="lb" for="tkIzin">Izin angkut B3 s/d</label><input id="tkIzin" class="in" type="date" value="' + esc(F.izin) + '"></div></div>';
+    h += '<label class="lb" for="tkOdo">Odometer (km)</label><input id="tkOdo" class="in uang" inputmode="numeric" value="' + esc(F.odometer) + '">';
+    h += '<div class="small muted" style="margin-top:6px">Tanggal surat yang kosong diperkirakan dari catatan bayar terakhir (pajak STNK + 1 tahun, STNK 5 tahunan + 5 tahun, KIR + 6 bulan).</div>';
     if (admin && !F.baru) h += '<label class="lb">Status</label><div class="seg">' + [['YA', 'Aktif'], ['TIDAK', 'Tidak aktif / dijual']].map(function (s) {
       return '<button data-a="trukAktif" data-v="' + s[0] + '" class="' + (F.aktif === s[0] ? 'on' : '') + '">' + s[1] + '</button>';
+    }).join('') + '</div>';
+    if (admin) h += '<label class="lb">Plotingan supir</label><div class="seg">' + [['OTOMATIS', 'Ikut dibagi'], ['MANUAL', 'Manual (Fuso)'], ['TIDAK', 'Tidak ikut']].map(function (s) {
+      return '<button data-a="trukPlot" data-v="' + s[0] + '" class="' + (F.plot === s[0] ? 'on' : '') + '">' + s[1] + '</button>';
     }).join('') + '</div>';
     h += '<div id="errTruk" class="err"></div><button class="btn" data-a="simpanTruk" id="btnSimpanTruk">Simpan data truk</button></div>';
     return h;
@@ -3702,7 +3890,7 @@
     if ($('tkNopol')) F.nopol = $('tkNopol').value;
     if ($('tkPemilik')) F.pemilik = $('tkPemilik').value;
     F.nama = $('tkNama').value; F.supir = $('tkSupir').value; F.merk = $('tkMerk').value; F.tahun = $('tkTahun').value;
-    F.stnk = $('tkStnk').value; F.kir = $('tkKir').value; F.izin = $('tkIzin').value; F.odometer = $('tkOdo').value;
+    F.stnk = $('tkStnk').value; F.stnk5 = $('tkStnk5').value; F.kir = $('tkKir').value; F.izin = $('tkIzin').value; F.odometer = $('tkOdo').value;
   }
 
   // ---------- lainnya (pemilik)
@@ -4057,6 +4245,8 @@
         return panggil('garasi', { kode: garasiLihat.pemilik.kode }, 'Memuat…').then(function (g) { garasiLihat = g; });
       }
       if (view === 'armada') ARMADA = null;
+      if (view === 'ceklis' && CEK) return muatCeklis(CEK.bulan);
+      if (view === 'plot' && PLOT && !PLOT.ubah) return muatPlot(PLOT.senin);
     }).then(function () {
       if (view === 'dasbor') { F.hasil = null; render(); }
       else if (['tagihanBaru', 'cairForm', 'transfer', 'pabrikForm', 'potongan', 'impor', 'gantiPin', 'pajakForm', 'rawatForm', 'trukForm', 'imporRit'].indexOf(view) < 0) render();
@@ -4071,6 +4261,8 @@
     if (v === 'rekap' || v === 'potongan' || v === 'impor' || v === 'dasbor' || v === 'pajakForm' || v === 'imporRit') F = {};
     if (v === 'armada') ARMADA = null;
     if (v === 'rawat' && view !== 'rawatForm' && S.peran === 'PEMILIK') filterRawat = { truk: '', jenis: '' };
+    if (v === 'ceklis' && view !== 'ceklis') CEK = null;              // data bayar bisa berubah dari HP lain
+    if (v === 'plot' && view !== 'plot' && PLOT && !PLOT.ubah) PLOT = null;
     buka(v);
   };
   A.go = function (v) {
@@ -4506,6 +4698,8 @@
       siapKirim = {};
       garasiLihat = null;
       ARMADA = null;
+      PLOT = null;
+      CEK = null;
       tabTruk = null;
       bulanTruk = null;
       view = 'beranda';
@@ -4613,7 +4807,17 @@
     if (daftar.length > 1) {
       h += '<div class="baris total"><span>Total ' + daftar.length + ' kali ganti</span><span class="n">' + rp(jumlah(daftar, 'biaya')) + '</span></div>';
     }
-    if (bolehRawat()) h += '<button class="btn" style="margin-top:12px" data-a="rawatBanBaru" data-v="' + esc(v) + '" id="btnBanBaru">+ Catat ganti ban ' + esc(v.toLowerCase()) + '</button>';
+    var dalam = rw.filter(function (r) { return r.jenis === 'BANDALAM' && r.posisi === v; }).slice().sort(function (a, b) { return a.tanggal < b.tanggal ? 1 : -1; });
+    if (dalam.length) {
+      h += '<h3 style="margin:14px 0 2px">Ban dalam</h3>' + dalam.map(function (r) {
+        return '<div class="baris"><span>' + esc(tglIndo(r.tanggal)) + ' · ' + esc(labelTindakan(r.tindakan).toLowerCase()) + (r.bengkel ? ' · ' + esc(r.bengkel) : '') +
+          '</span><span class="n">' + (r.biaya ? rp(r.biaya) : '') + '</span></div>';
+      }).join('');
+    }
+    if (bolehRawat()) {
+      h += '<div class="dua" style="margin-top:12px"><button class="btn" data-a="rawatBanBaru" data-v="' + esc(v) + '" id="btnBanBaru">+ Ganti ban</button>' +
+        '<button class="btn ghost" data-a="rawatBanDalamBaru" data-v="' + esc(v) + '" id="btnBanDalamBaru">+ Ban dalam</button></div>';
+    }
     bukaSheet('ban', v, h);
   };
   A.rawatBanBaru = function (v) {
@@ -4627,13 +4831,30 @@
   A.rawatBaru = function (v) { mulaiFormRawat(v || ''); buka('rawatForm'); };
   A.filterRawatTruk = function (v) { filterRawat.truk = v; render(); };
   A.filterRawatJenis = function (v) { filterRawat.jenis = v; render(); };
-  A.rawatTruk = function (v) { bacaFormRawat(); F.truk = v; F.posisi = ''; render(); };
-  A.rawatJenis = function (v) { bacaFormRawat(); F.jenis = v; if (v !== 'BAN') F.posisi = ''; render(); };
+  A.rawatTruk = function (v) { bacaFormRawat(); F.truk = v; F.posisi = ''; if (MASA_SURAT[F.jenis]) F.berlaku = berlakuAwal(F.truk, F.jenis, F.tanggal); render(); };
+  A.rawatJenis = function (v) {
+    bacaFormRawat();
+    F.jenis = v;
+    if (v !== 'BAN' && v !== 'BANDALAM') F.posisi = '';
+    F.tindakan = v === 'BANDALAM' ? (F.tindakan || 'TAMBAL') : '';
+    F.berlaku = berlakuAwal(F.truk, v, F.tanggal);
+    render();
+  };
+  A.rawatTindakan = function (v) { bacaFormRawat(); F.tindakan = v; render(); };
+  A.rawatBanDalamBaru = function (v) {
+    var t = trukAktif();
+    mulaiFormRawat(t ? t.nopol : '');
+    F.jenis = 'BANDALAM';
+    F.posisi = v;
+    F.tindakan = 'TAMBAL';
+    buka('rawatForm');
+  };
   A.rawatDetail = function (id) {
     var g = dataG(), r = g.rawat.filter(function (x) { return x.id === id; })[0];
     if (!r) return;
     var bisaBatal = S.peran === 'ADMIN' || S.peran === 'KEUANGAN' || (S.peran === 'PEMILIK' && r.oleh === S.akun.nama);
-    var baris = [['Truk', r.truk], ['Tanggal', tglIndo(r.tanggal)], ['Jenis', labelRawat(r.jenis) + (r.posisi ? ' · ' + r.posisi.toLowerCase() : '')],
+    var baris = [['Truk', r.truk], ['Tanggal', tglIndo(r.tanggal)], ['Jenis', labelRawat(r.jenis) + (r.tindakan ? ' · ' + labelTindakan(r.tindakan).toLowerCase() : '') +
+      (r.posisi ? ' · ' + r.posisi.toLowerCase() : '')],
       ['Biaya', r.biaya ? rp(r.biaya) : '-'], ['Odometer', r.km ? ribu(r.km) + ' km' : '-'], ['Bengkel / toko', r.bengkel || '-'], ['Dicatat', r.oleh]];
     var h = '<div class="sheet-top"><div style="display:flex;gap:12px;align-items:center"><div class="rawat-ikon">' + ikonRawat(r.jenis) + '</div><div><h2 style="margin:0">' + esc(r.uraian) + '</h2>' +
       '<div class="muted small">' + esc(r.id) + '</div></div></div><button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
@@ -4664,9 +4885,11 @@
     if (!F.truk) { err.textContent = 'Pilih truknya.'; return; }
     if (!F.jenis) { err.textContent = 'Pilih jenis perawatannya.'; return; }
     if (F.jenis === 'BAN' && !F.posisi) { err.textContent = 'Pilih posisi ban yang diganti.'; return; }
+    if (F.jenis === 'BANDALAM' && !F.posisi) { err.textContent = 'Pilih posisi ban dalamnya.'; return; }
+    if (F.jenis === 'BANDALAM' && !F.tindakan) { err.textContent = 'Pilih ditambal atau ganti baru.'; return; }
     if (!F.tanggal) { err.textContent = 'Isi tanggalnya.'; return; }
     var d = { truk: F.truk, jenis: F.jenis, posisi: F.posisi, tanggal: F.tanggal, biaya: F.biaya === '' ? '' : angka(F.biaya), km: F.km === '' ? '' : angka(F.km),
-      bengkel: F.bengkel, uraian: F.uraian, catatan: F.catatan };
+      bengkel: F.bengkel, uraian: F.uraian, catatan: F.catatan, tindakan: F.jenis === 'BANDALAM' ? F.tindakan : '', berlaku: MASA_SURAT[F.jenis] ? F.berlaku : '' };
     if (F.foto) { d.fotoBase64 = F.foto.b64; d.fotoMime = F.foto.mime; }
     var jenis = F.jenis, kembali = F.kembali || 'garasi', nopol = F.truk;
     panggil('simpanPerawatan', d).then(function (r) { return segarkanGarasi().then(function () { return r; }); }).then(function (r) {
@@ -4710,12 +4933,13 @@
   A.trukWarna = function (v) { bacaFormTruk(); F.warna = v; render(); };
   A.trukRoda = function (v) { bacaFormTruk(); F.roda = Number(v); render(); };
   A.trukAktif = function (v) { bacaFormTruk(); F.aktif = v; render(); };
+  A.trukPlot = function (v) { bacaFormTruk(); F.plot = v; render(); };
   A.simpanTruk = function () {
     bacaFormTruk();
     var err = $('errTruk');
     err.textContent = '';
     var d = { nopol: F.nopol, pemilik: F.pemilik, nama: F.nama, merk: F.merk, tahun: F.tahun, supir: F.supir, roda: F.roda, warna: F.warna, stnk: F.stnk, kir: F.kir,
-      izin: F.izin, odometer: F.odometer === '' ? '' : angka(F.odometer), aktif: F.aktif, catatan: F.catatan };
+      stnk5: F.stnk5, izin: F.izin, odometer: F.odometer === '' ? '' : angka(F.odometer), aktif: F.aktif, catatan: F.catatan, plot: F.plot };
     var kembali = F.kembali || 'garasi';
     panggil('simpanTruk', d).then(function (r) { return segarkanGarasi().then(function () { return r; }); }).then(function (r) {
       F = {};
@@ -4797,6 +5021,407 @@
         rayakan('ok', r.pesan, '').then(function () { buka('armada'); });
       }).catch(function (e) { err.textContent = e.message; });
     });
+  };
+
+  // ================= v1.5 plotingan supir (Bapak & Super Admin)
+  var PLOT = null;          // rencana minggu yang dibuka + perubahan yang belum disimpan
+  var NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  function hariKe(tgl) { return new Date(Date.UTC(Number(tgl.slice(0, 4)), Number(tgl.slice(5, 7)) - 1, Number(tgl.slice(8, 10)))).getUTCDay(); }
+  function muatPlot(tgl) {
+    return panggil('plot', { tanggal: tgl || '' }, 'Memuat plot…').then(function (h) {
+      h.ubah = false;
+      PLOT = h;
+      if (view === 'plot') render();
+    }).catch(function (e) { toast(e.message, 'bad'); });
+  }
+  function pabrikPlot(kode) { return PLOT.pabrik.filter(function (p) { return p.kode === kode; })[0]; }
+  function trukPlot(nopol) { return PLOT.truk.filter(function (t) { return t.nopol === nopol; })[0]; }
+  function liburPlot(tgl, nopol) { return PLOT.libur.filter(function (l) { return l.tanggal === tgl && l.nopol === nopol; })[0]; }
+  function labelAlasan(k) { var a = ALASAN_LIBUR.filter(function (x) { return x[0] === k; })[0]; return a ? a[1] : k; }
+  function rentangMinggu(senin) {
+    var akhir = tambahHariTgl(senin, 6);
+    return Number(senin.slice(8)) + (senin.slice(5, 7) === akhir.slice(5, 7) ? '' : ' ' + BULAN_PENDEK[Number(senin.slice(5, 7)) - 1]) + '–' + tglIndo(akhir);
+  }
+  function opsiTrukPlot(r) {
+    var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, grup = {}, urut = [];
+    PLOT.truk.forEach(function (t) {
+      if (!grup[t.namaPemilik]) { grup[t.namaPemilik] = []; urut.push(t.namaPemilik); }
+      grup[t.namaPemilik].push(t);
+    });
+    return '<option value="">' + (r.jenis === 'FABA' ? '— belum ada truk —' : '— pilih truk —') + '</option>' + urut.map(function (g) {
+      return '<optgroup label="' + esc(g) + '">' + grup[g].map(function (t) {
+        var cat = [], l = liburPlot(r.tanggal, t.nopol);
+        if (t.plot === 'MANUAL') cat.push('manual');
+        if (t.plot === 'TIDAK') cat.push('tidak ikut plot');
+        if (l) cat.push(labelAlasan(l.alasan).toLowerCase());
+        if (mamah && t.pemilik !== PLOT.aturan.pemilikMamah) cat.push('bukan mobil ' + PLOT.aturan.namaMamah);
+        return '<option value="' + esc(t.nopol) + '"' + (r.nopol === t.nopol ? ' selected' : '') + '>' + esc(t.nopol) + (t.supir ? ' · ' + esc(judulKata(t.supir)) : '') +
+          (cat.length ? ' (' + esc(cat.join(', ')) + ')' : '') + '</option>';
+      }).join('') + '</optgroup>';
+    }).join('');
+  }
+  function opsiPabrikPlot() {
+    var kel = [['Khusus mobil ' + PLOT.aturan.namaMamah, function (p) { return p.mamah; }], ['FABA', function (p) { return !p.mamah && p.jenis === 'FABA'; }],
+      ['Sludge (truk dipilih manual)', function (p) { return !p.mamah && p.jenis === 'SLUDGE'; }], ['Medis (truk dipilih manual)', function (p) { return !p.mamah && p.jenis === 'MEDIS'; }]];
+    return '<option value="">Pilih pabrik…</option>' + kel.map(function (k) {
+      var d = PLOT.pabrik.filter(k[1]);
+      return d.length ? '<optgroup label="' + esc(k[0]) + '">' + d.map(function (p) { return '<option value="' + esc(p.kode) + '">' + esc(p.nama) + '</option>'; }).join('') + '</optgroup>' : '';
+    }).join('');
+  }
+  function barisPlotHtml(r, i) {
+    var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, manual = r.jenis !== 'FABA';
+    var lencana = (r.jenis === 'SLUDGE' ? '<span class="bdg amber">sludge</span>' : r.jenis === 'MEDIS' ? '<span class="bdg red">medis</span>' : '') +
+      (mamah ? '<span class="bdg blue">mobil ' + esc(PLOT.aturan.namaMamah) + '</span>' : '') +
+      (r.cara === 'OTOMATIS' ? '<span class="bdg gray">usulan</span>' : r.cara === 'MANUAL' ? '<span class="bdg green">dipilih</span>' : '');
+    return '<div class="plot-baris' + (r.nopol ? '' : ' tanpa-truk') + '" id="pb-' + i + '"><div class="tx"><b>' + esc(r.namaPabrik || r.pabrik) + '</b>' + lencana +
+      (manual ? ' <button class="link" style="font-size:12.5px" data-a="plotTujuan" data-v="' + i + '">' + (r.tujuan ? 'ke ' + esc(r.tujuan) : '+ pemanfaat') + '</button>' : '') +
+      (r.alasan && !r.nopol ? '<div class="alasan">' + esc(r.alasan) + '</div>' : '') + '</div>' +
+      '<select class="in" data-plot-truk="' + i + '" aria-label="Truk untuk ' + esc(r.namaPabrik || r.pabrik) + '">' + opsiTrukPlot(r) + '</select>' +
+      '<button class="btn-x" data-a="plotHapus" data-v="' + i + '" aria-label="Hapus rit">×</button></div>';
+  }
+  function kartuRekapPlot() {
+    var kamis = tambahHariTgl(PLOT.senin, 3), kb = kamis.slice(0, 4) + kamis.slice(5, 7), mg = {}, bl = {};
+    PLOT.baris.forEach(function (r) {
+      if (!r.nopol) return;
+      mg[r.nopol] = (mg[r.nopol] || 0) + 1;
+      if (r.tanggal.slice(0, 4) + r.tanggal.slice(5, 7) === kb) bl[r.nopol] = (bl[r.nopol] || 0) + 1;
+    });
+    var oto = PLOT.truk.filter(function (t) { return t.plot === 'OTOMATIS'; }).map(function (t) { return mg[t.nopol] || 0; });
+    var selisih = oto.length ? Math.max.apply(null, oto) - Math.min.apply(null, oto) : 0, adaTruk = PLOT.baris.some(function (r) { return r.nopol; });
+    var h = '<div class="card" id="kartuRekapPlot"><div class="row"><h2 style="margin:0">Rekap per truk</h2>' +
+      (adaTruk ? '<span class="bdg ' + (selisih <= 1 ? 'green' : 'amber') + '">' + (selisih <= 1 ? 'rata' : 'selisih ' + selisih + ' rit') + '</span>' : '') + '</div>' +
+      '<div class="small muted" style="margin:4px 0 2px">Rit minggu ini dan ' + esc(namaBulan(Number(kb))) + ' dari rencana; ' + esc(namaBulan(PLOT.bulanLalu)) +
+      ' dari rit asli yang diimpor Lala. Truk abu-abu dipilih manual, tidak ikut dibagi rata.</div>';
+    h += '<table class="tbl kecil plot-rekap"><tr><th style="text-align:left">Truk</th><th>Minggu</th><th>' + BULAN_PENDEK[Number(kb.slice(4)) - 1] + '</th><th>' +
+      BULAN_PENDEK[PLOT.bulanLalu % 100 - 1] + '</th></tr>' + PLOT.truk.map(function (t) {
+        var b = (PLOT.hitung.bulan[kb + '|' + t.nopol] || 0) + (bl[t.nopol] || 0);
+        return '<tr' + (t.plot !== 'OTOMATIS' ? ' class="redup"' : '') + '><td>' + esc(t.nopol) + '<div class="small muted" style="font-weight:600">' +
+          esc([judulKata(t.supir || ''), t.namaPemilik, t.plot === 'MANUAL' ? 'manual' : t.plot === 'TIDAK' ? 'tidak ikut' : ''].filter(Boolean).join(' · ')) +
+          '</div></td><td class="n">' + (mg[t.nopol] || 0) + '</td><td class="n">' + b + '</td><td class="n">' + (PLOT.ritLalu[t.nopol] || '–') + '</td></tr>';
+      }).join('') + '</table>';
+    // sebaran pabrik minggu ini: pabrik yang ditarik 3 rit atau lebih
+    var perPabrik = {};
+    PLOT.baris.forEach(function (r) {
+      if (!r.nopol) return;
+      var x = perPabrik[r.pabrik] = perPabrik[r.pabrik] || { nama: r.namaPabrik, n: 0, truk: {} };
+      x.n++;
+      x.truk[r.nopol] = (x.truk[r.nopol] || 0) + 1;
+    });
+    var daftar = Object.keys(perPabrik).filter(function (k) { return perPabrik[k].n >= 3; }).sort(function (a, b) { return perPabrik[b].n - perPabrik[a].n; });
+    if (daftar.length) {
+      h += '<h3 style="margin:14px 0 2px">Sebaran pabrik minggu ini</h3>' + daftar.map(function (k) {
+        var x = perPabrik[k];
+        return '<div class="sebaran"><b>' + esc(x.nama) + '</b> · ' + x.n + ' rit<br><span class="muted">' + Object.keys(x.truk).sort(function (a, b) { return x.truk[b] - x.truk[a]; })
+          .map(function (n) { return esc(n.replace(/^[A-Z]+ /, '')) + ' (' + x.truk[n] + ')'; }).join(' · ') + '</span></div>';
+      }).join('');
+    }
+    return h + '</div>';
+  }
+  VIEWS.plot = function () {
+    var h = kepala('Plotingan supir', S.peran === 'DIREKSI' ? null : 'lainnya');
+    if (!PLOT) return h + '<div class="card"><div class="kosong">Memuat plot…</div></div>';
+    var P = PLOT, kosong = P.baris.filter(function (r) { return !r.nopol; }).length;
+    h += '<div class="card"><div class="row"><button class="btn sm ghost" data-a="plotMinggu" data-v="-7" aria-label="Minggu sebelumnya" id="btnPlotSebelum">‹</button>' +
+      '<div style="text-align:center"><b>' + esc(rentangMinggu(P.senin)) + '</b><div class="small muted">' + P.baris.length + ' rit' +
+      (kosong ? ' · ' + kosong + ' belum ada truk' : '') + (P.ubah ? ' · <b style="color:var(--amber)">belum disimpan</b>' : '') + '</div></div>' +
+      '<button class="btn sm ghost" data-a="plotMinggu" data-v="7" aria-label="Minggu berikutnya" id="btnPlotSesudah">›</button></div>' +
+      '<div class="small muted" style="margin-top:8px">Isi tarikan tiap hari, lalu ketuk <b>Usulkan pembagian</b>. Sistem membagi rit supaya rata per minggu dan per bulan, ' +
+      'pabrik khusus hanya ke mobil ' + esc(P.aturan.namaMamah) + ', dan tidak ada truk yang terus-terusan menarik pabrik yang sama. Fuso, sludge, dan medis dipilih manual.</div></div>';
+    h += '<div class="dua" style="margin-bottom:12px"><button class="btn" data-a="plotUsul" id="btnPlotUsul">Usulkan pembagian</button>' +
+      '<button class="btn ghost" data-a="plotSalinLalu" id="btnPlotSalin"' + (P.mingguLalu.length ? '' : ' disabled') + '>Salin minggu lalu</button></div>';
+    for (var i = 0; i < 7; i++) {
+      var tgl = tambahHariTgl(P.senin, i), libur = P.libur.filter(function (l) { return l.tanggal === tgl; });
+      var baris = [];
+      P.baris.forEach(function (r, j) { if (r.tanggal === tgl) baris.push(barisPlotHtml(r, j)); });
+      h += '<div class="card" id="hari-' + tgl + '"><div class="row"><h2 style="margin:0;font-size:16px">' + NAMA_HARI[hariKe(tgl)] + ', ' + esc(tglIndo(tgl)) + '</h2>' +
+        '<span class="small muted">' + (baris.length ? baris.length + ' rit' : 'belum ada') + '</span></div>' +
+        '<div class="libur-baris">' + libur.map(function (l) {
+          return '<button class="chip-libur" data-a="plotHapusLibur" data-v="' + esc(tgl + '|' + l.nopol) + '" title="Ketuk untuk batal libur">' + esc(l.nopol) + ' · ' +
+            esc(labelAlasan(l.alasan).toLowerCase()) + ' ×</button>';
+        }).join('') + '<button class="link small" data-a="plotTambahLibur" data-v="' + tgl + '" id="btnLibur-' + tgl + '">+ truk libur</button></div>' +
+        baris.join('') + '<div class="plot-tambah"><select class="in" id="tbPabrik-' + tgl + '" aria-label="Pabrik">' + opsiPabrikPlot() + '</select>' +
+        '<input class="in" id="tbJumlah-' + tgl + '" type="number" min="1" max="20" value="1" inputmode="numeric" aria-label="Jumlah rit">' +
+        '<button class="btn sm" data-a="plotTambah" data-v="' + tgl + '" id="btnTambah-' + tgl + '">+ Rit</button></div></div>';
+    }
+    h += kartuRekapPlot();
+    h += '<div id="errPlot" class="err"></div><button class="btn" data-a="plotSimpan" id="btnPlotSimpan">Simpan plot minggu ini</button>' +
+      '<button class="btn ghost" data-a="plotWa" id="btnPlotWa">Kirim jadwal ke WhatsApp</button>' +
+      '<button class="btn ghost" data-a="plotAturan" id="btnPlotAturan">Aturan plotingan</button>';
+    return h;
+  };
+  SETELAH.plot = function () { if (!PLOT) muatPlot(); };
+  A.plotMinggu = function (v) {
+    var lanjut = function () { muatPlot(tambahHariTgl(PLOT.senin, Number(v))); };
+    if (PLOT && PLOT.ubah) {
+      dialog({ judul: 'Perubahan belum disimpan', isi: 'Kalau pindah minggu, perubahan plot minggu ini hilang.', ok: 'Pindah', bahaya: true })
+        .then(function (ya) { if (ya) lanjut(); });
+    } else lanjut();
+  };
+  A.plotTambah = function (tgl) {
+    var p = $('tbPabrik-' + tgl).value, n = Math.max(1, Math.min(20, Number($('tbJumlah-' + tgl).value) || 1));
+    if (!p) { toast('Pilih pabriknya dulu.', 'bad'); return; }
+    var pb = pabrikPlot(p);
+    for (var i = 0; i < n; i++) PLOT.baris.push({ id: '', tanggal: tgl, pabrik: p, namaPabrik: pb.nama, jenis: pb.jenis, nopol: '', supir: '', cara: '', tujuan: '', catatan: '' });
+    PLOT.baris.sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
+    PLOT.ubah = true;
+    render();
+  };
+  A.plotHapus = function (i) { PLOT.baris.splice(Number(i), 1); PLOT.ubah = true; render(); };
+  A.plotUsul = function () {
+    var libur = {};
+    PLOT.libur.forEach(function (l) { libur[l.tanggal + '|' + l.nopol] = l.alasan; });
+    PLOT.baris.forEach(function (r) { if (r.cara === 'OTOMATIS') { r.nopol = ''; r.supir = ''; r.cara = ''; } });
+    usulkanPlot(PLOT.baris, PLOT.truk, PLOT.hitung, { pabrikMamah: PLOT.aturan.pabrikMamah, pemilikMamah: PLOT.aturan.pemilikMamah,
+      maksHari: PLOT.aturan.maksHari, libur: libur });
+    var oto = PLOT.baris.filter(function (r) { return r.cara === 'OTOMATIS'; }).length, kosong = PLOT.baris.filter(function (r) { return !r.nopol; }).length;
+    PLOT.ubah = true;
+    render();
+    SUARA.pop();
+    toast(oto ? oto + ' rit dibagi otomatis' + (kosong ? ', ' + kosong + ' rit perlu dipilih manual.' : '. Cek dulu, lalu simpan.') : 'Belum ada rit yang bisa dibagi otomatis.');
+  };
+  A.plotSalinLalu = function () {
+    var tambah = function () {
+      PLOT.mingguLalu.forEach(function (x) {
+        var pb = pabrikPlot(x.pabrik);
+        if (pb) PLOT.baris.push({ id: '', tanggal: tambahHariTgl(PLOT.senin, x.hari), pabrik: x.pabrik, namaPabrik: pb.nama, jenis: pb.jenis, nopol: '', supir: '', cara: '', tujuan: '', catatan: '' });
+      });
+      PLOT.baris.sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 : 0; });
+      PLOT.ubah = true;
+      render();
+      toast(PLOT.mingguLalu.length + ' rit minggu lalu disalin. Ketuk "Usulkan pembagian" untuk membagi truknya.');
+    };
+    if (PLOT.baris.length) {
+      dialog({ judul: 'Tambah daftar minggu lalu?', isi: 'Minggu ini sudah ada ' + PLOT.baris.length + ' rit. Daftar minggu lalu (' + PLOT.mingguLalu.length +
+        ' rit) ditambahkan di bawahnya.', ok: 'Tambahkan' }).then(function (ya) { if (ya) tambah(); });
+    } else tambah();
+  };
+  A.plotTambahLibur = function (tgl) {
+    var bisa = PLOT.truk.filter(function (t) { return !liburPlot(tgl, t.nopol); });
+    bukaSheet('libur', tgl, '<div class="sheet-top"><div><h2 style="margin:0">Truk libur</h2><div class="muted small">' + NAMA_HARI[hariKe(tgl)] + ', ' + esc(tglIndo(tgl)) +
+      '</div></div><button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
+      '<label class="lb" for="lbTruk">Truk / supir yang tidak jalan</label><select id="lbTruk" class="in">' + bisa.map(function (t) {
+        return '<option value="' + esc(t.nopol) + '">' + esc(t.nopol) + (t.supir ? ' · ' + esc(judulKata(t.supir)) : '') + ' (' + esc(t.namaPemilik) + ')</option>';
+      }).join('') + '</select><label class="lb">Alasan</label><div class="seg" id="lbAlasan">' + ALASAN_LIBUR.map(function (a, i) {
+        return '<button data-a="pilihSeg" data-v="lbAlasan" data-k="' + a[0] + '" class="' + (i === 0 ? 'on' : '') + '">' + esc(a[1]) + '</button>';
+      }).join('') + '</div><button class="btn" style="margin-top:12px" data-a="simpanLibur" data-v="' + tgl + '" id="btnSimpanLibur">Tandai libur</button>');
+  };
+  /** Pilihan tunggal di lembar bawah: tombol data-v = id wadah, data-k = nilai. */
+  A.pilihSeg = function (v, el) { Array.prototype.forEach.call($(v).children, function (b) { b.classList.toggle('on', b === el); }); };
+  function nilaiSeg(id, cadangan) { var on = $(id) && $(id).querySelector('.on'); return on ? on.getAttribute('data-k') : cadangan; }
+  A.simpanLibur = function (tgl) {
+    var nopol = $('lbTruk').value, alasan = nilaiSeg('lbAlasan', 'LAIN'), lepas = 0;
+    if (!nopol) return;
+    PLOT.libur.push({ tanggal: tgl, nopol: nopol, alasan: alasan });
+    PLOT.baris.forEach(function (r) { if (r.tanggal === tgl && r.nopol === nopol) { r.nopol = ''; r.supir = ''; r.cara = ''; lepas++; } });
+    PLOT.ubah = true;
+    tutupSheet();
+    render();
+    if (lepas) toast(lepas + ' rit ' + nopol + ' hari itu dilepas. Ketuk "Usulkan pembagian" untuk mengisi ulang.');
+  };
+  A.plotHapusLibur = function (v) {
+    var p = v.split('|');
+    PLOT.libur = PLOT.libur.filter(function (l) { return !(l.tanggal === p[0] && l.nopol === p[1]); });
+    PLOT.ubah = true;
+    render();
+  };
+  A.plotTujuan = function (i) {
+    var r = PLOT.baris[Number(i)];
+    dialog({ judul: 'Pemanfaat / tujuan', isi: r.namaPabrik + ' · ' + tglIndo(r.tanggal) + '. Sludge & medis tiap pemanfaat kerja samanya dan harganya beda.',
+      input: 'Tujuan atau pemanfaatnya', ok: 'Simpan' }).then(function (v) {
+      if (v === null) return;
+      r.tujuan = v;
+      PLOT.ubah = true;
+      render();
+    });
+  };
+  A.plotSimpan = function () {
+    var err = $('errPlot');
+    err.textContent = '';
+    var data = { senin: PLOT.senin, libur: PLOT.libur, baris: PLOT.baris.map(function (r) {
+      return { id: r.id, tanggal: r.tanggal, pabrik: r.pabrik, nopol: r.nopol, cara: r.cara, tujuan: r.tujuan, catatan: r.catatan };
+    }) };
+    panggil('simpanPlot', data, 'Menyimpan plot…').then(function (r) { return muatPlot(PLOT.senin).then(function () { return r; }); })
+      .then(function (r) { rayakan('ok', r.pesan, ''); }).catch(function (e) { err.textContent = e.message; });
+  };
+  A.plotWa = function () {
+    var L = ['*Plot tarikan ' + rentangMinggu(PLOT.senin) + '*'];
+    for (var i = 0; i < 7; i++) {
+      var tgl = tambahHariTgl(PLOT.senin, i);
+      var b = PLOT.baris.filter(function (r) { return r.tanggal === tgl; }), lb = PLOT.libur.filter(function (l) { return l.tanggal === tgl; });
+      if (!b.length && !lb.length) continue;
+      L.push('', '*' + NAMA_HARI[hariKe(tgl)] + ', ' + tglIndo(tgl) + '*');
+      b.forEach(function (r) {
+        var t = trukPlot(r.nopol);
+        L.push('• ' + (r.nopol ? r.nopol + (t && t.supir ? ' (' + judulKata(t.supir) + ')' : '') : 'BELUM ADA TRUK') + ' → ' + r.namaPabrik +
+          (r.jenis !== 'FABA' ? ' [' + r.jenis.toLowerCase() + ']' : '') + (r.tujuan ? ', ke ' + r.tujuan : ''));
+      });
+      if (lb.length) L.push('_Libur: ' + lb.map(function (l) { return l.nopol + ' (' + labelAlasan(l.alasan).toLowerCase() + ')'; }).join(', ') + '_');
+    }
+    if (PLOT.ubah) toast('Plot belum disimpan. Yang dikirim versi di layar.');
+    bukaWa(waLink_('', L.join('\n')), 'grup supir');
+  };
+  A.plotAturan = function () {
+    var a = PLOT.aturan, belum = a.pabrikMamah.filter(function (k) { return !pabrikPlot(k); });
+    bukaSheet('aturPlot', null, '<div class="sheet-top"><div><h2 style="margin:0">Aturan plotingan</h2><div class="muted small">Dipakai waktu sistem mengusulkan pembagian</div></div>' +
+      '<button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
+      '<label class="lb">Maksimal rit satu truk per hari</label><div class="seg" id="apMaks">' + [1, 2, 3].map(function (n) {
+        return '<button data-a="pilihSeg" data-v="apMaks" data-k="' + n + '" class="' + (a.maksHari === n ? 'on' : '') + '">' + n + ' rit</button>';
+      }).join('') + '</div><label class="lb">Pabrik khusus mobil ' + esc(a.namaMamah) + '</label>' +
+      '<div class="small muted" style="margin-bottom:6px">Pabrik yang dicentang hanya diusulkan ke truk ' + esc(a.namaMamah) + ' (Fuso tetap manual).</div>' +
+      '<div class="cek-pabrik">' + PLOT.pabrik.filter(function (p) { return p.jenis === 'FABA'; }).map(function (p) {
+        return '<label><input type="checkbox" value="' + esc(p.kode) + '"' + (p.mamah ? ' checked' : '') + '> ' + esc(p.nama) + '</label>';
+      }).join('') + '</div>' + (belum.length ? '<div class="note warn small">Belum ada di master pabrik: ' + esc(belum.join(', ')) + '. Tetap disimpan, otomatis berlaku kalau pabriknya ditambahkan.</div>' : '') +
+      '<div id="errAturPlot" class="err"></div><button class="btn" data-a="simpanAturPlot" id="btnSimpanAturPlot">Simpan aturan</button>');
+  };
+  A.simpanAturPlot = function () {
+    var kode = Array.prototype.map.call(document.querySelectorAll('.cek-pabrik input:checked'), function (x) { return x.value; });
+    var belum = PLOT.aturan.pabrikMamah.filter(function (k) { return !pabrikPlot(k); }), maks = Number(nilaiSeg('apMaks', PLOT.aturan.maksHari));
+    panggil('aturPlot', { pabrikMamah: kode.concat(belum), maksHari: maks }, 'Menyimpan aturan…').then(function (r) {
+      PLOT.aturan.pabrikMamah = kode.concat(belum);
+      PLOT.aturan.maksHari = maks;
+      PLOT.pabrik.forEach(function (p) { p.mamah = PLOT.aturan.pabrikMamah.indexOf(p.kode) >= 0; });
+      tutupSheet();
+      render();
+      toast(r.pesan + ' Ketuk "Usulkan pembagian" lagi kalau mau dibagi ulang.');
+    }).catch(function (e) { $('errAturPlot').textContent = e.message; });
+  };
+
+  // ================= v1.5 ceklis bayar bulanan (Bapak; Super Admin hanya lihat)
+  var CEK = null;
+  function muatCeklis(bulan) {
+    return panggil('ceklis', { bulan: bulan || '' }, 'Memuat ceklis…').then(function (h) {
+      CEK = h;
+      if (view === 'ceklis') render();
+    }).catch(function (e) { toast(e.message, 'bad'); });
+  }
+  function itemCeklis(x) {
+    var sudah = !!x.bayar, kunci = x.jenis + '|' + x.ref, d = [];
+    if (x.jenis === 'KOMISI' && x.pabrik) {
+      d.push(x.pabrik.map(function (p) { return p.nama + ' ' + ribu(p.kg) + ' kg × Rp ' + ribu(p.komisi); }).join(', '));
+      if (x.dariRit) d.push('sebagian dari rincian rit, tagihannya belum ada');
+    } else if (x.jenis === 'RUTIN') {
+      if (x.frekuensi === 'TAHUNAN') d.push('tahunan');
+      if (x.tglBayar) d.push('biasa tgl ' + x.tglBayar);
+      if (x.rekening) d.push(x.rekening);
+      if (x.catatan) d.push(x.catatan);
+    }
+    if (sudah && x.bayar.catatan) d.push('catatan: ' + x.bayar.catatan);
+    return '<div class="cek-bayar' + (sudah ? ' sudah' : '') + '" data-a="cekItem" data-v="' + esc(kunci) + '" id="cek-' + idAman(kunci) + '"><span class="cek-bulat">' + (sudah ? '✓' : '') + '</span>' +
+      '<div class="tx"><b>' + esc(x.nama) + '</b>' + (d.length ? '<div class="d">' + esc(d.join(' · ')) + '</div>' : '') + '</div><div class="kanan"><b>' +
+      (sudah ? (x.bayar.nominal != null ? rp(x.bayar.nominal) : 'sudah') : x.perkiraan ? rp(x.perkiraan) : '–') + '</b><div class="d">' +
+      (sudah ? tglIndo(x.bayar.tanggal) : 'perkiraan') + '</div></div></div>';
+  }
+  function cariCeklis(kunci) {
+    var p = kunci.split('|'), jenis = p[0], ref = p.slice(1).join('|');
+    return CEK.rutin.concat(CEK.komisi, CEK.lain).filter(function (x) { return x.jenis === jenis && x.ref === ref; })[0];
+  }
+  VIEWS.ceklis = function () {
+    var h = kepala('Ceklis bayar bulanan', S.peran === 'DIREKSI' ? null : 'lainnya');
+    if (!CEK) return h + '<div class="card"><div class="kosong">Memuat ceklis…</div></div>';
+    var C = CEK, persen = C.ringkas.total ? Math.round(C.ringkas.sudah / C.ringkas.total * 100) : 0;
+    h += '<div class="card"><div class="row"><button class="btn sm ghost" data-a="cekBulan" data-v="-1" aria-label="Bulan sebelumnya" id="btnCekSebelum">‹</button>' +
+      '<div style="text-align:center"><b>' + esc(namaBulan(C.bulan)) + '</b><div class="small muted">' + C.ringkas.sudah + ' dari ' + C.ringkas.total + ' sudah dibayar</div></div>' +
+      '<button class="btn sm ghost" data-a="cekBulan" data-v="1" aria-label="Bulan berikutnya" id="btnCekSesudah">›</button></div>' +
+      '<div class="progres"><span style="width:' + persen + '%;background:var(--green)"></span></div>' +
+      '<div class="tile-grid" style="margin:10px 0 0">' + tile('Perkiraan bulan ini', rpRingkas(C.ringkas.perkiraan), C.ringkas.total + ' pos', '') +
+      tile('Sudah dibayar', rpRingkas(C.ringkas.dibayar), C.ringkas.sudah + ' pos', 'hijau') + '</div></div>';
+    if (!C.bisaUbah) h += '<div class="note info small">Centang bayar dan daftar pengeluaran hanya bisa diubah dari akun Bapak. Di sini cuma lihat.</div>';
+    C.kategori.forEach(function (k) {
+      var it = C.rutin.filter(function (r) { return r.kategori === k; });
+      if (it.length) h += '<div class="card"><h2>' + esc(k) + '</h2>' + it.map(itemCeklis).join('') + '</div>';
+    });
+    h += '<div class="card" id="kartuKomisi"><h2>Komisi agen</h2><div class="small muted" style="margin:-4px 0 4px">Dari tonase ' + esc(namaBulan(C.bulanTarik)) +
+      ' × komisi per kg di master pabrik. Isi nominal yang benar-benar ditransfer.</div>' +
+      (C.komisi.length ? C.komisi.map(itemCeklis).join('') : '<div class="kosong">Belum ada tonase ' + esc(namaBulan(C.bulanTarik)) + ' untuk pabrik yang ada komisinya.</div>') + '</div>';
+    if (C.lain.length) h += '<div class="card"><h2>Centang lain</h2><div class="small muted">Pos yang sudah tidak ada di daftar bulan ini.</div>' + C.lain.map(itemCeklis).join('') + '</div>';
+    h += '<div class="card" id="kartuRutin"><div class="row"><h2 style="margin:0">Daftar pengeluaran rutin</h2>' +
+      (C.bisaUbah ? '<button class="btn sm" data-a="rutinUbah" data-v="" id="btnRutinBaru">+ Tambah</button>' : '') + '</div>' +
+      C.master.map(function (m) {
+        return '<div class="pj-baris"' + (C.bisaUbah ? ' data-a="rutinUbah" data-v="' + esc(m.id) + '"' : '') + '><div class="tx"><b' + (m.aktif === 'TIDAK' ? ' class="muted"' : '') + '>' +
+          esc(m.nama) + '</b><div class="small muted">' + esc([m.kategori, m.frekuensi === 'TAHUNAN' ? 'tahunan, ' + NAMA_BULAN[(m.bulanBayar || 1) - 1] : 'bulanan',
+            m.aktif === 'TIDAK' ? 'tidak aktif' : ''].filter(Boolean).join(' · ')) + '</div></div><div class="kanan"><b>' + (m.nominal ? rp(m.nominal) : '–') + '</b></div></div>';
+      }).join('') + '</div>';
+    return h;
+  };
+  SETELAH.ceklis = function () { if (!CEK) muatCeklis(); };
+  A.cekBulan = function (v) { muatCeklis(geserBulan(CEK.bulan, Number(v))); };
+  function geserBulan(k, n) {
+    var y = Math.floor(k / 100), m = k % 100 + n;
+    while (m < 1) { m += 12; y--; }
+    while (m > 12) { m -= 12; y++; }
+    return y * 100 + m;
+  }
+  A.cekItem = function (kunci) {
+    var x = cariCeklis(kunci);
+    if (!x) return;
+    var b = x.bayar, ubah = CEK.bisaUbah;
+    var h = '<div class="sheet-top"><div><h2 style="margin:0">' + esc(x.nama) + '</h2><div class="muted small">' + esc(namaBulan(CEK.bulan)) +
+      (x.perkiraan ? ' · perkiraan ' + rp(x.perkiraan) : '') + '</div></div><button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>';
+    if (x.jenis === 'KOMISI' && x.pabrik) {
+      h += x.pabrik.map(function (p) {
+        return '<div class="baris"><span>' + esc(p.nama) + '<span class="small muted" style="display:block">' + ribu(p.kg) + ' kg × Rp ' + ribu(p.komisi) +
+          (p.dariRit ? ' (dari rincian rit)' : '') + '</span></span><span class="n">' + rp(p.nilai) + '</span></div>';
+      }).join('');
+    }
+    if (b) h += '<div class="note ok small">Sudah dibayar ' + (b.nominal != null ? rp(b.nominal) + ' ' : '') + 'tanggal ' + esc(tglIndo(b.tanggal)) + ', dicatat ' + esc(b.oleh) + '.</div>';
+    if (ubah) {
+      h += '<div class="grid2"><div><label class="lb" for="cbNominal">Dibayar (Rp)</label><input id="cbNominal" class="in uang" inputmode="numeric" value="' +
+        esc(b && b.nominal != null ? ribu(b.nominal) : x.perkiraan ? ribu(x.perkiraan) : '') + '"></div><div><label class="lb" for="cbTanggal">Tanggal bayar</label>' +
+        '<input id="cbTanggal" class="in" type="date" value="' + esc(b ? b.tanggal : S.hariIni) + '" max="' + esc(S.hariIni) + '"></div></div>' +
+        '<label class="lb" for="cbCatatan">Catatan (kalau perlu)</label><input id="cbCatatan" class="in" value="' + esc(b ? b.catatan : '') + '">' +
+        '<div id="errCek" class="err"></div><button class="btn" data-a="cekSimpan" data-v="' + esc(kunci) + '" id="btnCekSimpan">' + (b ? 'Perbarui' : 'Sudah dibayar') + '</button>' +
+        (b ? '<button class="btn danger" data-a="cekBatal" data-v="' + esc(b.id) + '" id="btnCekBatal">Batalkan centang</button>' : '');
+    }
+    bukaSheet('cek', kunci, h);
+  };
+  A.cekSimpan = function (kunci) {
+    var x = cariCeklis(kunci), err = $('errCek');
+    err.textContent = '';
+    var d = { bulan: CEK.bulan, jenis: x.jenis, ref: x.ref, nama: x.nama, perkiraan: x.perkiraan == null ? '' : x.perkiraan,
+      nominal: $('cbNominal').value === '' ? '' : angka($('cbNominal').value), tanggal: $('cbTanggal').value, catatan: $('cbCatatan').value };
+    panggil('bayarCeklis', d, 'Menyimpan…').then(function (r) { return muatCeklis(CEK.bulan).then(function () { return r; }); })
+      .then(function (r) { tutupSheet(); SUARA.kaching(); getar(20); toast(r.pesan); }).catch(function (e) { err.textContent = e.message; });
+  };
+  A.cekBatal = function (id) {
+    dialog({ judul: 'Batalkan centang?', isi: 'Catatan bayarnya ditandai batal, tidak dihapus.', ok: 'Batalkan', bahaya: true }).then(function (ya) {
+      if (!ya) return;
+      panggil('batalCeklis', { id: id }, 'Menyimpan…').then(function (r) { return muatCeklis(CEK.bulan).then(function () { return r; }); })
+        .then(function (r) { tutupSheet(); toast(r.pesan); }).catch(function (e) { toast(e.message, 'bad'); });
+    });
+  };
+  A.rutinUbah = function (id) {
+    var m = id ? CEK.master.filter(function (x) { return x.id === id; })[0] : { nama: '', kategori: CEK.kategori[0], nominal: null, frekuensi: 'BULANAN', bulanBayar: null,
+      tglBayar: null, rekening: 'BRI', aktif: 'YA', catatan: '' };
+    if (!m) return;
+    var seg = function (idWadah, daftar, pilih) {
+      return '<div class="seg" id="' + idWadah + '">' + daftar.map(function (x) {
+        return '<button data-a="pilihSeg" data-v="' + idWadah + '" data-k="' + esc(x[0]) + '" class="' + (String(pilih) === String(x[0]) ? 'on' : '') + '">' + esc(x[1]) + '</button>';
+      }).join('') + '</div>';
+    };
+    bukaSheet('rutin', id || 'baru', '<div class="sheet-top"><h2 style="margin:0">' + (id ? 'Ubah pengeluaran rutin' : 'Pengeluaran rutin baru') + '</h2>' +
+      '<button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
+      '<label class="lb" for="ruNama">Nama pengeluaran</label><input id="ruNama" class="in" value="' + esc(m.nama) + '">' +
+      '<label class="lb" for="ruKategori">Kategori</label><select id="ruKategori" class="in">' + CEK.kategori.map(function (k) {
+        return '<option' + (m.kategori === k ? ' selected' : '') + '>' + esc(k) + '</option>';
+      }).join('') + '</select>' +
+      '<div class="grid2"><div><label class="lb" for="ruNominal">Perkiraan (Rp)</label><input id="ruNominal" class="in uang" inputmode="numeric" value="' +
+      esc(m.nominal ? ribu(m.nominal) : '') + '"></div><div><label class="lb" for="ruTgl">Biasa dibayar tgl</label><input id="ruTgl" class="in" inputmode="numeric" value="' +
+      esc(m.tglBayar || '') + '" placeholder="1-31"></div></div>' +
+      '<label class="lb">Frekuensi</label>' + seg('ruFrek', [['BULANAN', 'Tiap bulan'], ['TAHUNAN', 'Setahun sekali']], m.frekuensi) +
+      '<label class="lb" for="ruBulan">Bulan bayar (kalau setahun sekali)</label><select id="ruBulan" class="in">' + NAMA_BULAN.map(function (n, i) {
+        return '<option value="' + (i + 1) + '"' + (Number(m.bulanBayar) === i + 1 ? ' selected' : '') + '>' + n + '</option>';
+      }).join('') + '</select>' +
+      '<label class="lb">Dibayar dari</label>' + seg('ruRek', [['BRI', 'BRI'], ['BCA', 'BCA'], ['Tunai', 'Tunai']], m.rekening || 'BRI') +
+      '<label class="lb">Status</label>' + seg('ruAktif', [['YA', 'Aktif'], ['TIDAK', 'Tidak aktif']], m.aktif || 'YA') +
+      '<label class="lb" for="ruCatatan">Catatan</label><input id="ruCatatan" class="in" value="' + esc(m.catatan || '') + '">' +
+      '<div id="errRutin" class="err"></div><button class="btn" data-a="rutinSimpan" data-v="' + esc(id || '') + '" id="btnRutinSimpan">Simpan</button>');
+  };
+  A.rutinSimpan = function (id) {
+    var d = { id: id || '', nama: $('ruNama').value, kategori: $('ruKategori').value, nominal: $('ruNominal').value === '' ? '' : angka($('ruNominal').value),
+      tglBayar: $('ruTgl').value, frekuensi: nilaiSeg('ruFrek', 'BULANAN'), bulanBayar: $('ruBulan').value, rekening: nilaiSeg('ruRek', 'BRI'),
+      aktif: nilaiSeg('ruAktif', 'YA'), catatan: $('ruCatatan').value };
+    panggil('simpanRutin', d, 'Menyimpan…').then(function (r) { return muatCeklis(CEK.bulan).then(function () { return r; }); })
+      .then(function (r) { tutupSheet(); toast(r.pesan); }).catch(function (e) { $('errRutin').textContent = e.message; });
   };
 
   document.addEventListener('click', function (e) {
@@ -4884,6 +5509,15 @@
       render();
     }
     if (view === 'tagihanBaru') { bacaFormTagihan(); previewTagihan(); }
+    if (view === 'plot' && PLOT && el.hasAttribute && el.hasAttribute('data-plot-truk')) {
+      var rp1 = PLOT.baris[Number(el.getAttribute('data-plot-truk'))], tk = trukPlot(el.value);
+      rp1.nopol = el.value;
+      rp1.supir = tk ? tk.supir : '';
+      rp1.cara = el.value ? 'MANUAL' : '';
+      rp1.alasan = '';
+      PLOT.ubah = true;
+      render();
+    }
     if (view === 'potongan' && el.id === 'ptPenerima') F.penerima = el.value;
     if (view === 'pajakForm' && el.id === 'pjJenis') { bacaFormPajak(); render(); }
     if (view === 'pajakForm' && el.id === 'pjMasa') segarkanFormPajak(el);
@@ -4967,6 +5601,8 @@
       F = {};
       garasiLihat = null;
       ARMADA = null;
+      PLOT = null;
+      CEK = null;
       tabTruk = null;
       bulanTruk = null;
       view = viewAwal();
