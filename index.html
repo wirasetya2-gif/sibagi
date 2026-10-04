@@ -1904,7 +1904,7 @@
     if (!diam) loading(true, teks || (berat ? 'Menyimpan…' : 'Memuat…'));
     return new Promise(function (ok, gagal) {
       google.script.run
-        .withSuccessHandler(function (r) { if (!diam) loading(false); S = r.state; ok(r.hasil); })
+        .withSuccessHandler(function (r) { if (!diam) loading(false); if (r.state) S = r.state; ok(r.hasil); })   // halaman baca-saja: state tetap
         .withFailureHandler(function (e) { if (!diam) loading(false); gagal(new Error(pesanError(e))); })
         .api(SESI, aksi, data || {});
     });
@@ -3646,9 +3646,13 @@
       return '<div>' + ikonRawat(k.jenis) + '<span><b>' + esc(k.nama) + '</b><small>' + (k.hari < 31 ? k.hari + ' hari lalu' : Math.round(k.hari / 30.4) + ' bln lalu') +
         (k.jumlah > 1 ? ' · ' + k.jumlah + ' kali' : '') + '</small></span></div>';
     }).join('') + '</div></div>';
-    // 4. perjalanan bulan terpilih: tiap pabrik dengan tanggal tiap ritnya (v1.5, semua bulan)
+    // 4. perjalanan bulan terpilih: tiap pabrik dengan tanggal tiap ritnya (v1.5, semua bulan; v1.6.1 bulan lama diambil saat dibuka)
     h += '<div class="card" id="kartuJalan"><h2>Perjalanan ' + esc(namaBulan(pilih)) + '</h2>';
-    if (b.pabrik.length) {
+    var daftarPabrik = b.rit ? pabrikBulan(g, t, b) : [];
+    if (!daftarPabrik) {
+      h += '<div class="muted small">Memuat perjalanan ' + esc(namaBulan(pilih)) + '…</div>';
+    } else if (daftarPabrik.length) {
+      b.pabrik = daftarPabrik;
       var hariRit = [], namaHr = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
       var tglKe = function (d) { return String(pilih).slice(0, 4) + '-' + String(pilih).slice(4, 6) + '-' + (d < 10 ? '0' : '') + d; };
       b.pabrik.forEach(function (p) { (p.tgl || []).forEach(function (x) { hariRit.push({ tanggal: tglKe(x[0]), kg: x[1] }); }); });
@@ -3669,6 +3673,24 @@
       (bolehRawat() ? '<button class="btn" style="margin-top:10px" data-a="rawatBaru" data-v="' + esc(t.nopol) + '" id="btnRawatBaru">+ Catat perawatan</button>' : '') +
       (bolehUbahTruk() ? '<button class="btn ghost" data-a="trukUbah" data-v="' + esc(t.nopol) + '">Ubah data truk</button>' : '') + '</div>';
     return h;
+  }
+  // Rincian "Perjalanan" bulan lama tidak ikut dikirim bersama garasi (biar ringan); diambil sekali saat bulannya dibuka.
+  var PJ = {}, PJ_PROSES = {};
+  function pabrikBulan(g, t, b) {
+    if (b.pabrik) return b.pabrik;
+    var k = g.pemilik.kode + '|' + t.nopol + '|' + b.bulan;
+    if (PJ[k]) return PJ[k];
+    if (!PJ_PROSES[k]) {
+      PJ_PROSES[k] = true;
+      setTimeout(function () {
+        panggil('garasiBulan', { kode: g.pemilik.kode, nopol: t.nopol, bulan: b.bulan }, '', true).then(function (x) {
+          PJ[k] = x.pabrik;
+          delete PJ_PROSES[k];
+          if ($('kartuJalan')) { diamTruk = true; render(); diamTruk = false; }
+        }).catch(function (e) { delete PJ_PROSES[k]; toast(e.message, 'bad'); });
+      }, 0);
+    }
+    return null;
   }
   function kalenderRit(bulan, rit) {
     var y = Math.floor(bulan / 100), m = bulan % 100, pertama = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(), jml = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -4266,15 +4288,17 @@
     masuk(s);
   };
   A.muat = function () {
-    panggil('masuk', {}, 'Memuat…').then(function () {
+    var dsb = null;
+    panggil('masuk', {}, 'Memuat…').then(function (h) {
+      dsb = h && h.dasbor;
       if (S.peran !== 'PEMILIK' && garasiLihat && ['garasi', 'uang', 'rawat'].indexOf(view) >= 0) {
         return panggil('garasi', { kode: garasiLihat.pemilik.kode }, 'Memuat…').then(function (g) { garasiLihat = g; });
       }
       if (view === 'armada') ARMADA = null;
       if (view === 'ceklis' && CEK) return muatCeklis(CEK.bulan);
-      if (view === 'plot' && PLOT && !PLOT.ubah) return muatPlot(PLOT.senin);
+      if (view === 'plot' && PLOT && !PLOT.ubah) return muatPlot(HARI_PLOT);
     }).then(function () {
-      if (view === 'dasbor') { F.hasil = null; render(); }
+      if (view === 'dasbor') { F.hasil = dsb && dsb.tahun === F.tahun ? dsb : null; render(); }
       else if (['tagihanBaru', 'cairForm', 'transfer', 'pabrikForm', 'potongan', 'impor', 'gantiPin', 'pajakForm', 'rawatForm', 'trukForm', 'imporRit'].indexOf(view) < 0) render();
       else renderNav();
       segarkanSheet();
@@ -5780,7 +5804,7 @@
     SESI = sesi;
     $('pinBtn').disabled = true;
     $('pinErr').textContent = '';
-    panggil('masuk', {}, 'Memuat…').then(function () {
+    panggil('masuk', {}, 'Memuat…').then(function (h) {
       simpanLokal(KUNCI_SESI, JSON.stringify(sesi));
       $('vMasuk').classList.add('hidden');
       F = {};
@@ -5792,6 +5816,7 @@
       tabTruk = null;
       bulanTruk = null;
       view = viewAwal();
+      if (view === 'dasbor' && h && h.dasbor) F = { jenisForm: 'dasbor', tahun: h.dasbor.tahun, hasil: h.dasbor };   // ringkasan ikut terkirim saat masuk
       render();
       // penyetuju yang punya slip menunggu langsung disambut kartu slip
       if (view === 'setuju' && S.peran === 'PENYETUJU') {
@@ -5812,6 +5837,10 @@
     if (!el) return;
     var buang = function () { if (el.parentNode) el.parentNode.removeChild(el); };
     if (window.SIBAGI_REKAM) { buang(); return; }
+    // v1.6.1: animasi penuh cukup sekali sehari per HP; dibuka lagi di hari yang sama langsung masuk (file latihan selalu tampil)
+    var tglIni = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
+    if (!window.SIBAGI_LATIHAN && bacaLokal('sibagiPembuka') === tglIni) { buang(); return; }
+    simpanLokal('sibagiPembuka', tglIni);
     var hemat = false;
     try { hemat = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { hemat = false; }
     var acak = function (a, b) { return a + Math.random() * (b - a); };
