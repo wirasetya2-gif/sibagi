@@ -1196,9 +1196,12 @@
         return !libur[r.tanggal + '|' + t.nopol] && (!khusus(r) || t.pemilik === aturan.pemilikMamah) && (hr[r.tanggal + '|' + t.nopol] || 0) < maks;
       });
       if (!calon.length) { r.alasan = khusus(r) ? 'Mobil Mamah penuh atau libur' : 'Semua truk penuh atau libur'; return; }
+      // v1.7: mobil Mamah difokuskan ke pabrik khususnya; pabrik lain diisi truk pemilik lain dulu, mobil Mamah baru kebagian
+      // kalau truk lain sudah dapat rit hari itu (rit hari itu tetap urutan pertama supaya tiap truk rata satu rit per hari)
       var skor = function (t) {
         var b = kb(r.tanggal);
-        return [hr[r.tanggal + '|' + t.nopol] || 0, mg[t.nopol] || 0, pb[b + '|' + t.nopol + '|' + r.pabrik] || 0, bl[b + '|' + t.nopol] || 0];
+        return [hr[r.tanggal + '|' + t.nopol] || 0, !khusus(r) && t.pemilik === aturan.pemilikMamah ? 1 : 0, mg[t.nopol] || 0,
+          pb[b + '|' + t.nopol + '|' + r.pabrik] || 0, bl[b + '|' + t.nopol] || 0];
       };
       calon.sort(function (a, b) {
         var sa = skor(a), sb = skor(b);
@@ -1240,6 +1243,77 @@
       }
     }
     return baris;
+  }
+  
+  function normGiat(s) {
+    return String(s || '').toLowerCase().replace(/\b(pt|cv)\b\.?/g, ' ').replace(/te(k|ch)\b/g, 'tex').replace(/[^a-z0-9]/g, '');
+  }
+  
+  function jarakTeks(a, b) {
+    var d = [];
+    for (var i = 0; i <= a.length; i++) { d[i] = [i]; for (var j = 1; j <= b.length; j++) d[i][j] = i ? 0 : j; }
+    for (i = 1; i <= a.length; i++) {
+      for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    return d[a.length][b.length];
+  }
+  
+  function cocokPabrikGiat(teks, pabrik) {
+    var q = normGiat(teks);
+    if (q.length < 2) return null;
+    var batas = Math.floor(q.length / 5), terbaik = null;
+    pabrik.forEach(function (p) {
+      var kata = String(p.nama || '').replace(/\b(PT|CV)\b\.?/gi, ' ').split(/[^A-Za-z0-9]+/).filter(Boolean);
+      var bentuk = [normGiat(p.kode), normGiat(p.nama), kata.map(function (k) { return k[0]; }).join('').toLowerCase()];
+      bentuk.forEach(function (f) {
+        if (!f) return;
+        var j = Math.min(jarakTeks(q, f.slice(0, q.length)), jarakTeks(q, f));
+        if (j > batas) return;
+        var nilai = [j, jenisPlot(p) === 'FABA' ? 0 : 1, f.length];
+        var lebihBaik = !terbaik || nilai[0] < terbaik.n[0] || (nilai[0] === terbaik.n[0] && (nilai[1] < terbaik.n[1] ||
+          (nilai[1] === terbaik.n[1] && nilai[2] < terbaik.n[2])));
+        if (lebihBaik) terbaik = { p: p, n: nilai };
+      });
+    });
+    return terbaik ? terbaik.p : null;
+  }
+  
+  function bacaGiat(teks, truk, pabrik) {
+    var hari = [], kini = null;
+    var supirKe = function (nama) {
+      var n = normGiat(nama);
+      return truk.filter(function (t) { return t.supir && normGiat(String(t.supir).split(/[\s\/]+/)[0]) === n; })[0] || null;
+    };
+    String(teks || '').split(/\r?\n/).forEach(function (baris) {
+      var s = baris.replace(/[*_~]/g, '').trim();
+      if (!s) return;
+      var tg = s.match(/(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{2,4})/);
+      var no = s.match(/^(\d{1,2})\s*[.)]\s*[.\s]*(.*)$/);
+      if (tg && (!no || /giat|tgl|tanggal|senin|selasa|rabu|kamis|jumat|sabtu|minggu/i.test(s))) {
+        var th = Number(tg[3]) < 100 ? 2000 + Number(tg[3]) : Number(tg[3]);
+        kini = { tanggal: th + '-' + ('0' + tg[2]).slice(-2) + '-' + ('0' + tg[1]).slice(-2), judul: s, baris: [] };
+        hari.push(kini);
+        return;
+      }
+      if (!no || !kini) return;
+      var isi = no[2].replace(/\.+\s*$/, '').trim();
+      var m = isi.match(/^([A-Za-z]+(?:\s*\/\s*[A-Za-z]+)*)\s*[-:,]?\s*(.*)$/);
+      if (!m) return;
+      var namaSupir = m[1].split('/').map(function (x) { return x.trim(); }), t = null;
+      for (var i = 0; i < namaSupir.length && !t; i++) t = supirKe(namaSupir[i]);
+      var sisa = m[2].replace(/^[-:,.\s]+/, '').replace(/[.\s]+$/, '');
+      var bagian = sisa ? sisa.split(/\s*(?:\+|&|\bdan\b)\s*/i).filter(Boolean) : [''];
+      bagian.forEach(function (b) {
+        var p = b ? cocokPabrikGiat(b, pabrik) : null, masalah = [], cat = [];
+        if (!t) masalah.push('supir');
+        if (b && !p) masalah.push('pabrik');
+        if (!t || namaSupir.length > 1) cat.push('supir ' + namaSupir.join('/'));
+        if (b && !p) cat.push('pabrik "' + b + '" belum ada di master');
+        kini.baris.push({ no: Number(no[1]), teks: no[2].trim(), supir: t ? t.supir : namaSupir[0], nopol: t ? t.nopol : '',
+          pabrik: p ? p.kode : '', namaPabrik: p ? p.nama : '', jenis: p ? jenisPlot(p) : 'FABA', catatan: cat.join('; '), masalah: masalah });
+      });
+    });
+    return hari.filter(function (h) { return h.baris.length; });
   }
 
   // ================= pembaca rekap PDF (disalin otomatis dari _dev/rekap_pdf.js)
@@ -5146,7 +5220,9 @@
     var mamah = PLOT.aturan.pabrikMamah.indexOf(r.pabrik) >= 0, manual = r.jenis !== 'FABA', langgar = langgarMamah(r);
     var lencana = (r.jenis === 'SLUDGE' ? '<span class="bdg amber">sludge</span>' : r.jenis === 'MEDIS' ? '<span class="bdg red">medis</span>' : '') +
       (mamah ? '<span class="bdg blue">mobil ' + esc(PLOT.aturan.namaMamah) + '</span>' : '') +
-      (r.cara === 'OTOMATIS' ? '<span class="bdg gray">otomatis</span>' : r.cara === 'MANUAL' ? '<span class="bdg green">dipilih</span>' : '');
+      (r.cara === 'OTOMATIS' ? '<span class="bdg gray">otomatis</span>' : r.cara === 'MANUAL' ? '<span class="bdg green">dipilih</span>' :
+        r.cara === 'GIAT' ? '<span class="bdg green">giat WA</span>' : '') +
+      (!r.pabrik ? ' <button class="link" style="font-size:12.5px" data-a="plotIsiPabrik" data-v="' + i + '">isi pabrik</button>' : '');
     return '<div class="plot-baris' + (r.nopol ? '' : ' tanpa-truk') + (langgar ? ' langgar' : '') + '" id="pb-' + i + '"><div class="tx"><b>' + esc(r.namaPabrik || r.pabrik) + '</b>' + lencana +
       (manual ? ' <button class="link" style="font-size:12.5px" data-a="plotTujuan" data-v="' + i + '">' + (r.tujuan ? 'ke ' + esc(r.tujuan) : '+ pemanfaat') + '</button>' : '') +
       (r.catatan ? '<div class="cat">' + esc(r.catatan) + '</div>' : '') +
@@ -5239,7 +5315,8 @@
       '<div><label class="lb" for="tbCatatan">Catatan</label><input class="in" id="tbCatatan" maxlength="60" placeholder="mis. jam 7 pagi"></div></div>' +
       '<button class="btn" style="margin-top:12px" data-a="plotTambah" id="btnPlotTambah">Plotkan otomatis</button>' +
       (salinan.length ? '<button class="link small" style="display:block;margin:12px auto 0" data-a="plotSalinLalu" id="btnPlotSalin">Salin permintaan ' +
-        esc(NAMA_HARI[hariKe(hari)]) + ' minggu lalu (' + salinan.length + ' rit)</button>' : '') + '</div>';
+        esc(NAMA_HARI[hariKe(hari)]) + ' minggu lalu (' + salinan.length + ' rit)</button>' : '') +
+      '<button class="btn sm ghost" style="margin-top:12px" data-a="giatTempel" id="btnGiat">Tempel giat dari WA</button></div>';
     // 3. hasil plot hari itu: bisa diganti manual, truk yang tidak jalan dilepas & rit-nya dipindah otomatis
     h += '<div class="card" id="kartuHasilPlot"><div class="row"><h2 style="margin:0">Hasil plot</h2><span class="small muted">' +
       (barisHari.length ? barisHari.length + ' rit' + (kosong ? ' · <b style="color:var(--amber)">' + kosong + ' belum ada truk</b>' : '') : 'belum ada') + '</span></div>' +
@@ -5416,6 +5493,87 @@
     if (PLOT.ubah) toast('Plot belum disimpan. Yang dikirim versi di layar.');
     bukaWa(waLink_('', L.join('\n')), 'grup supir');
   };
+  /** v1.7 rit yang pabriknya menyusul (dari giat WA): pilih pabriknya belakangan. */
+  A.plotIsiPabrik = function (i) {
+    var r = PLOT.baris[Number(i)];
+    bukaSheet('isiPabrik', i, '<div class="sheet-top"><div><h2 style="margin:0">Pabriknya apa?</h2><div class="muted small">' + esc(r.nopol + (r.supir ? ' · ' + judulKata(r.supir) : '') +
+      ' · ' + judulHariPlot(r.tanggal)) + '</div></div><button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
+      '<label class="lb" for="ipPabrik">Pabrik</label><select class="in" id="ipPabrik">' + opsiPabrikPlot() + '</select>' +
+      '<button class="btn" style="margin-top:12px" data-a="simpanIsiPabrik" data-v="' + i + '" id="btnIsiPabrik">Pakai pabrik ini</button>');
+  };
+  A.simpanIsiPabrik = function (i) {
+    var pb = pabrikPlot($('ipPabrik').value), r = PLOT.baris[Number(i)];
+    if (!pb) { toast('Pilih pabriknya dulu.', 'bad'); return; }
+    r.pabrik = pb.kode; r.namaPabrik = pb.nama; r.jenis = pb.jenis;
+    r.catatan = String(r.catatan || '').split('; ').filter(function (c) { return !/^pabrik /.test(c); }).join('; ');
+    PLOT.ubah = true;
+    tutupSheet();
+    render();
+    toast('Pabrik diisi. Jangan lupa Simpan plot.');
+  };
+
+  // v1.7 tempel giat dari grup WA: "Giat kamis 01/10/2026" + "1.Marwan sipatek" → rit per tanggal (menggantikan plot tanggal itu)
+  var GIAT = null;
+  A.giatTempel = function () {
+    if (PLOT.ubah) { toast('Simpan plot dulu, baru tempel giat.', 'bad'); return; }
+    GIAT = null;
+    bukaSheet('giat', null, '<div class="sheet-top"><div><h2 style="margin:0">Tempel giat dari WA</h2><div class="muted small">Satu nama = satu rit. "angrek+safilindo" = dua rit.</div></div>' +
+      '<button class="x" data-a="tutupSheet" aria-label="Tutup">×</button></div>' +
+      '<textarea class="in" id="giatTeks" rows="9" style="font-size:14px" placeholder="Giat kamis 01/10/2026&#10;1.Marwan sipatek&#10;2.Herman angrek+safilindo&#10;3.Yayan..."></textarea>' +
+      '<div class="small muted" style="margin-top:6px">Boleh beberapa hari sekaligus. Rit di tanggal itu menggantikan plot yang sudah ada. Nama pabrik yang belum ditulis = menyusul.</div>' +
+      '<div id="errGiat" class="err"></div><button class="btn" data-a="giatBaca" id="btnGiatBaca">Baca giat</button><div id="giatHasil"></div>');
+  };
+  function giatHtml() {
+    var masalah = 0;
+    var h = GIAT.map(function (d, di) {
+      return '<h3 style="margin:14px 0 4px">' + esc(NAMA_HARI[hariKe(d.tanggal)] + ' ' + tglIndo(d.tanggal)) + ' · ' + d.baris.length + ' rit</h3>' + d.baris.map(function (r, ri) {
+        if (!r.nopol) masalah++;
+        return '<div class="plot-baris' + (r.nopol ? '' : ' tanpa-truk') + '" id="gb-' + di + '-' + ri + '"><div class="tx"><b>' + esc(r.no + '. ' + judulKata(r.supir)) + '</b> ' +
+          (r.pabrik ? esc(r.namaPabrik) : '<span class="bdg amber">pabrik menyusul</span>') +
+          (r.catatan ? '<div class="cat">' + esc(r.catatan) + '</div>' : '') + '</div>' +
+          '<select class="in" data-giat="' + di + '|' + ri + '" aria-label="Truk ' + esc(r.supir) + '">' +
+          opsiTrukPlot({ tanggal: d.tanggal, pabrik: r.pabrik, jenis: 'FABA', nopol: r.nopol }) + '</select></div>';
+      }).join('');
+    }).join('');
+    return h + (masalah ? '<div class="note warn small">' + masalah + ' supir belum dikenal. Pilih truknya (mis. supir pengganti bawa truk siapa).</div>' : '') +
+      '<button class="btn" style="margin-top:12px" data-a="giatSimpan" id="btnGiatSimpan">Simpan ' + GIAT.reduce(function (a, d) { return a + d.baris.length; }, 0) + ' rit</button>';
+  }
+  A.giatBaca = function () {
+    $('errGiat').textContent = '';
+    GIAT = bacaGiat($('giatTeks').value, PLOT.truk, PLOT.pabrik);
+    if (!GIAT.length) {
+      $('errGiat').textContent = 'Belum ada yang terbaca. Pastikan ada baris tanggal (mis. "Giat kamis 01/10/2026") dan baris "1.Nama pabrik".';
+      $('giatHasil').innerHTML = '';
+      return;
+    }
+    $('giatHasil').innerHTML = giatHtml();
+  };
+  A.giatSimpan = function () {
+    var err = $('errGiat');
+    err.textContent = '';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-giat]'), function (el) {
+      var k = el.getAttribute('data-giat').split('|');
+      GIAT[Number(k[0])].baris[Number(k[1])].nopol = el.value;
+    });
+    var kosong = 0;
+    GIAT.forEach(function (d) { d.baris.forEach(function (r) { if (!r.nopol) kosong++; }); });
+    if (kosong) { err.textContent = kosong + ' rit belum ada truknya.'; return; }
+    var data = { hari: GIAT.map(function (d) {
+      return { tanggal: d.tanggal, baris: d.baris.map(function (r) { return { pabrik: r.pabrik, nopol: r.nopol, catatan: r.catatan }; }) };
+    }) };
+    var lanjut = function () {
+      panggil('imporGiat', data, 'Menyimpan giat…').then(function (r) {
+        tutupSheet();
+        return muatPlot(r.tanggal[0]).then(function () { rayakan('ok', r.pesan, r.batal ? r.batal + ' plot lama di tanggal itu diganti.' : ''); });
+      }).catch(function (e) { err.textContent = e.message; });
+    };
+    var ada = PLOT.baris.filter(function (r) { return data.hari.some(function (d) { return d.tanggal === r.tanggal; }); }).length;
+    if (ada) {
+      dialog({ judul: 'Ganti plot tanggal itu?', isi: 'Plot ' + data.hari.map(function (d) { return tglIndo(d.tanggal); }).join(', ') +
+        ' yang sudah ada diganti dengan giat ini. Plot lama tidak dihapus, hanya dibatalkan.', ok: 'Ganti' }).then(function (ya) { if (ya) lanjut(); });
+    } else lanjut();
+  };
+
   A.plotAturan = function () {
     var a = PLOT.aturan, belum = a.pabrikMamah.filter(function (k) { return !pabrikPlot(k); });
     bukaSheet('aturPlot', null, '<div class="sheet-top"><div><h2 style="margin:0">Aturan plotingan</h2><div class="muted small">Dipakai waktu sistem memplotkan permintaan</div></div>' +
@@ -5423,7 +5581,8 @@
       '<label class="lb">Maksimal rit satu truk per hari</label><div class="seg" id="apMaks">' + [1, 2, 3].map(function (n) {
         return '<button data-a="pilihSeg" data-v="apMaks" data-k="' + n + '" class="' + (a.maksHari === n ? 'on' : '') + '">' + n + ' rit</button>';
       }).join('') + '</div><label class="lb">Pabrik khusus mobil ' + esc(a.namaMamah) + '</label>' +
-      '<div class="small muted" style="margin-bottom:6px">Pabrik yang dicentang hanya diplotkan ke truk ' + esc(a.namaMamah) + ' (Fuso tetap manual). Kalau dipindah ke truk lain, muncul peringatan.</div>' +
+      '<div class="small muted" style="margin-bottom:6px">Pabrik yang dicentang hanya diplotkan ke truk ' + esc(a.namaMamah) + ' (Fuso tetap manual). Kalau dipindah ke truk lain, muncul peringatan. ' +
+      'Pabrik lain diisi truk pemilik lain dulu; truk ' + esc(a.namaMamah) + ' baru kebagian kalau truk lain sudah dapat rit hari itu.</div>' +
       '<div class="cek-pabrik">' + PLOT.pabrik.filter(function (p) { return p.jenis === 'FABA'; }).map(function (p) {
         return '<label><input type="checkbox" value="' + esc(p.kode) + '"' + (p.mamah ? ' checked' : '') + '> ' + esc(p.nama) + '</label>';
       }).join('') + '</div>' + (belum.length ? '<div class="note warn small">Belum ada di master pabrik: ' + esc(belum.join(', ')) + '. Tetap disimpan, otomatis berlaku kalau pabriknya ditambahkan.</div>' : '') +
