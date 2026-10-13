@@ -892,13 +892,14 @@
     ov = ov || {};
     var tarif = ov.tarif != null ? ov.tarif : p.tarif;
     var komisi = ov.komisi != null ? ov.komisi : p.komisi;
+    if (komisi === '' || komisi === undefined) komisi = null;   // null = komisi belum diisi, tarif pemilik sementara = tarif penuh
     var rit = 0, kg = 0;
     rincian.forEach(function (r) { rit += r.rit; kg += r.kg; });
     var dpp = Math.round(kg * tarif);
     var nilaiPpn = p.ppn === 'YA' ? Math.round(dpp * set.ppnPersen / 100) : 0;
     var pphPabrik = p.pph === 'YA' ? Math.round(dpp * set.pphPersen / 100) : 0;
     return {
-      tarif: tarif, komisi: komisi, tarifPemilik: tarifPemilik(tarif, komisi), ppn: p.ppn, pph: p.pph, jenis: p.jenis,
+      tarif: tarif, komisi: komisi, tarifPemilik: tarifPemilik(tarif, komisi || 0), ppn: p.ppn, pph: p.pph, jenis: p.jenis,
       rit: rit, kg: kg, dpp: dpp, nilaiPpn: nilaiPpn, pphPabrik: pphPabrik, harus: dpp + nilaiPpn - pphPabrik,
       bhsKg: set.bhsKg, kasRit: set.kasRit, feeRit: set.feeRit, kasSludge: set.kasSludge ? 'YA' : 'TIDAK'
     };
@@ -2265,11 +2266,27 @@
     }
     if (p !== 'PENYETUJU' && S.pabrik.some(function (x) { return x.aktif !== 'TIDAK' && x.masalah; })) {
       var n = S.pabrik.filter(function (x) { return x.aktif !== 'TIDAK' && x.masalah; }).length;
-      h.push('<div class="note warn small" data-a="nav" data-v="pabrik" style="cursor:pointer">' + n +
-        ' pabrik belum lengkap datanya (komisi/tarif). Tagihannya belum bisa dibuat sampai dilengkapi. Ketuk untuk lihat.</div>');
+      h.push('<div class="note warn small" data-a="filterPabrikBuka" data-v="MASALAH" style="cursor:pointer">' + n +
+        ' pabrik belum lengkap datanya (tarif/PPN). Tagihannya belum bisa dibuat sampai dilengkapi. Ketuk untuk lihat.</div>');
     }
+    if (p !== 'PENYETUJU') h.push(peringatanKomisi());
     return h.join('');
   };
+  /** Komisi pabrik kosong tidak menghalangi tagihan, tapi peringatannya terus muncul sampai komisinya diisi. */
+  function tgTanpaKomisi(t) { return t.komisi === null || t.komisi === undefined || t.komisi === ''; }
+  function peringatanKomisi() {
+    // tagihan yang pabriknya sudah diisi komisi tapi uangnya terlanjur cair tidak dihitung di sini (peringatannya di detail tagihan)
+    var tg = S.tagihan.filter(function (t) { var pk = pabrikByKode(t.pabrik); return tgTanpaKomisi(t) && (!pk || pk.komisiKosong); });
+    var pb = S.pabrik.filter(function (x) { return x.aktif !== 'TIDAK' && x.komisiKosong && !x.masalah; });
+    if (!tg.length && !pb.length) return '';
+    var pbTg = {};
+    tg.forEach(function (t) { pbTg[t.namaPabrik] = 1; });
+    return '<div class="note warn small" data-a="filterPabrikBuka" data-v="KOMISI" id="awasKomisi" style="cursor:pointer"><b>Komisi belum diisi.</b> ' +
+      (tg.length ? tg.length + ' tagihan (' + esc(Object.keys(pbTg).slice(0, 4).join(', ')) + (Object.keys(pbTg).length > 4 ? ', …' : '') +
+        ') dihitung tanpa potongan komisi dulu. ' : '') +
+      (pb.length ? pb.length + ' pabrik belum ada komisinya. ' : '') +
+      'Isi komisinya di menu Pabrik (tanya Bapak); tagihan yang belum cair ikut dihitung ulang otomatis. Ketuk untuk lihat.</div>';
+  }
 
   // ---------- tagihan: daftar
   VIEWS.tagihan = function () {
@@ -2283,11 +2300,13 @@
       return '<button data-a="filterTg" data-v="' + c[0] + '" class="' + (filterTg === c[0] ? 'on' : '') + '">' + c[1] +
         (c[0] !== 'SEMUA' ? ' (' + n[c[0]] + ')' : '') + '</button>';
     }).join('') + '</div>';
+    h += peringatanKomisi();
     if (!daftar.length) return h + '<div class="card kosong">Tidak ada tagihan di sini.</div>';
     h += '<div class="card">' + daftar.map(function (t) {
       return '<div class="item" data-a="tagihanDetail" data-v="' + t.id + '" id="tg-' + t.id + '"><div class="r1"><b>' + esc(t.namaPabrik) +
         ' · ' + bulanPendek(t.bulan) + '</b>' + bdgBayar(t) + '</div><div class="d">' + t.rit + ' rit · ' + ribu(t.kg) + ' kg' +
-        (t.invoice ? ' · ' + esc(t.invoice) : '') + '</div><div class="r2"><span class="small muted">' +
+        (t.invoice ? ' · ' + esc(t.invoice) : '') + (tgTanpaKomisi(t) ? ' · <span style="color:var(--amber);font-weight:700">komisi belum diisi</span>' : '') +
+        '</div><div class="r2"><span class="small muted">' +
         (t.statusBayar === 'LUNAS' ? 'masuk ' + rp(t.masuk) : t.umur + ' hari sejak invoice' + (t.masuk ? ' · sudah masuk ' + rp(t.masuk) : '')) +
         '</span><b>' + rp(t.harus) + '</b></div></div>';
     }).join('') + '</div>';
@@ -2316,8 +2335,17 @@
       h += '<div class="small muted" style="margin-top:6px">Sumber: ' + (/^https?:/.test(t.sumber) ? '<a class="link" href="' + esc(t.sumber) +
         '" target="_blank" rel="noopener">rekap PDF dari Lala</a>' : 'rekap PDF (latihan)') + '</div>';
     }
-    h += '<h3 style="margin-top:14px">Hak per pemilik (kalau lunas)</h3><div class="muted small" style="margin-bottom:4px">Tarif pemilik ' +
-      rpTarif(t.tarifPemilik) + '/kg (tarif ' + rpTarif(t.tarif) + ' − komisi ' + rpTarif(t.komisi) + ')</div>';
+    h += '<h3 style="margin-top:14px">Hak per pemilik (kalau lunas)</h3>';
+    if (tgTanpaKomisi(t)) {
+      var pk = pabrikByKode(t.pabrik), sudahCair = cair.length > 0;
+      h += '<div class="note warn small" id="awasKomisiTg"><b>Komisi belum diisi.</b> Hak di bawah masih tanpa potongan komisi (tarif pemilik = tarif penuh ' + rpTarif(t.tarif) + '/kg). ' +
+        (pk && !pk.komisiKosong ? (sudahCair ? 'Komisi ' + esc(pk.nama) + ' sekarang sudah ' + rpTarif(pk.komisi) + '/kg, tapi uang cairnya dicatat sebelum itu. ' +
+          'Kalau slipnya belum ditransfer, batalkan uang cairnya lalu catat ulang supaya komisinya ikut terpotong.' :
+          'Komisi ' + esc(pk.nama) + ' sudah ' + rpTarif(pk.komisi) + '/kg; dipakai otomatis waktu uang cairnya dicatat.') :
+          'Isi komisinya di menu Pabrik (tanya Bapak). Selama uangnya belum cair, tagihan ini ikut dihitung ulang otomatis.') + '</div>';
+    } else {
+      h += '<div class="muted small" style="margin-bottom:4px">Tarif pemilik ' + rpTarif(t.tarifPemilik) + '/kg (tarif ' + rpTarif(t.tarif) + ' − komisi ' + rpTarif(t.komisi) + ')</div>';
+    }
     h += t.rincian.map(function (r) {
       return '<div class="baris"><span><b>' + esc(r.nama) + '</b> · ' + r.rit + ' rit · ' + ribu(r.kg) + ' kg</span><span class="n">' + rp(r.hak) + '</span></div>';
     }).join('');
@@ -2356,7 +2384,11 @@
       F.totalKontrabon = dari.totalKontrabon ? ribu(dari.totalKontrabon) : '';
       dari.rincian.forEach(function (r) { F.rincian[r.penerima] = { rit: String(r.rit), kg: ribu(r.kg) }; });
       var p = pabrikByKode(dari.pabrik);
-      if (p && (p.tarif !== dari.tarif || p.komisi !== dari.komisi)) { F.ov = true; F.tarif = String(dari.tarif).replace('.', ','); F.komisi = String(dari.komisi).replace('.', ','); }
+      // tagihan tanpa komisi: perbaikan memakai komisi pabrik terbaru (kalau sudah diisi), bukan dianggap komisi khusus
+      var kLama = tgTanpaKomisi(dari) ? null : dari.komisi;
+      if (p && (p.tarif !== dari.tarif || (kLama !== null && p.komisi !== kLama))) {
+        F.ov = true; F.tarif = String(dari.tarif).replace('.', ','); F.komisi = kLama === null ? '' : String(kLama).replace('.', ',');
+      }
     }
   }
   function pabrikByKode(k) { return S.pabrik.filter(function (p) { return p.kode === k; })[0]; }
@@ -2391,13 +2423,16 @@
     return h;
   };
   function infoPabrik(p) {
-    var h = '<div class="note ' + (p.masalah ? 'bad' : p.cekKomisi === 'Perlu dicek Bapak' ? 'warn' : 'info') + ' small">';
+    var tanpaKomisi = p.komisiKosong && !(F.ov && F.komisi !== '');
+    var h = '<div class="note ' + (p.masalah ? 'bad' : tanpaKomisi || p.cekKomisi === 'Perlu dicek Bapak' ? 'warn' : 'info') + ' small" id="infoPabrik">';
     if (p.masalah) {
-      h += '<b>' + esc(p.masalah) + '.</b> Lengkapi dulu di menu Pabrik (tanya Bapak untuk komisinya).';
+      h += '<b>' + esc(p.masalah) + '.</b> Lengkapi dulu di menu Pabrik.';
     } else {
-      h += 'Tarif ' + rpTarif(F.ov && F.tarif ? desimal(F.tarif) : p.tarif) + '/kg · komisi ' + rpTarif(F.ov && F.komisi !== '' ? desimal(F.komisi) : p.komisi) +
-        '/kg' + (p.agen ? ' (' + esc(p.agen) + ')' : '') + ' · PPN ' + (p.ppn === 'YA' ? 'ya' : 'tidak') + ' · PPh 23 ' + (p.pph === 'YA' ? 'dipotong' : 'tidak');
-      if (p.cekKomisi === 'Perlu dicek Bapak') h += '<br><b>Komisi belum dicek Bapak.</b> Boleh lanjut, tapi minta Bapak cek.';
+      h += 'Tarif ' + rpTarif(F.ov && F.tarif ? desimal(F.tarif) : p.tarif) + '/kg · komisi ' +
+        (tanpaKomisi ? 'belum diisi' : rpTarif(F.ov && F.komisi !== '' ? desimal(F.komisi) : p.komisi) + '/kg') +
+        (p.agen ? ' (' + esc(p.agen) + ')' : '') + ' · PPN ' + (p.ppn === 'YA' ? 'ya' : 'tidak') + ' · PPh 23 ' + (p.pph === 'YA' ? 'dipotong' : 'tidak');
+      if (tanpaKomisi) h += '<br><b>Komisi belum diisi.</b> Boleh lanjut: hak pemilik dihitung tanpa komisi dulu, lalu dihitung ulang otomatis begitu komisinya diisi di menu Pabrik (selama uangnya belum cair).';
+      else if (p.cekKomisi === 'Perlu dicek Bapak') h += '<br><b>Komisi belum dicek Bapak.</b> Boleh lanjut, tapi minta Bapak cek.';
       if (p.jenis === 'SLUDGE' && !S.set.sludgeOk) h += '<br><b>Aturan sludge belum dikonfirmasi Bapak.</b> Hitungan pakai fee truk ' + rp(S.set.feeRit) + '/rit, sisanya untuk ' + esc(S.set.namaSludgeUntuk) + '.';
     }
     h += '</div>';
@@ -2499,7 +2534,8 @@
     $('daftarPabrik').innerHTML = daftar.length ? daftar.map(function (p) {
       return '<button class="opsi" data-a="pilihPabrik" data-v="' + p.kode + '" id="pb-' + p.kode + '"><div class="row"><b>' + esc(p.nama) + '</b><span class="bdg ' +
         (p.jenis === 'SLUDGE' ? 'amber' : 'blue') + '">' + p.jenis + '</span></div><div class="small ' + (p.masalah ? '' : 'muted') + '" style="' +
-        (p.masalah ? 'color:var(--red)' : '') + '">' + (p.masalah ? esc(p.masalah) : 'Tarif ' + rpTarif(p.tarif) + ' · komisi ' + rpTarif(p.komisi) +
+        (p.masalah ? 'color:var(--red)' : '') + '">' + (p.masalah ? esc(p.masalah) : 'Tarif ' + rpTarif(p.tarif) + ' · ' +
+        (p.komisiKosong ? '<span style="color:var(--amber);font-weight:700">komisi belum diisi</span>' : 'komisi ' + rpTarif(p.komisi)) +
         ' · PPN ' + (p.ppn === 'YA' ? 'ya' : 'tidak')) + '</div></button>';
     }).join('') : '<div class="kosong">Tidak ketemu. Tambahkan dulu di menu Pabrik.</div>';
   }
@@ -2549,13 +2585,17 @@
     var tarif = p.tarif > 0 ? p.tarif : desimal(b.tarifBaru);
     if (!(tarif > 0)) return ['amber', 'Tarif belum diisi'];
     var kosong = p.komisi === null || p.komisi === '';
-    if (kosong && String(b.komisiBaru).trim() === '') return ['amber', 'Komisi belum diisi'];
-    var komisi = kosong ? desimal(b.komisiBaru) : p.komisi;
-    if (!(komisi >= 0) || komisi >= tarif) return ['bad', 'Komisi harus 0 sampai di bawah tarif'];
+    var tanpaKomisi = kosong && String(b.komisiBaru).trim() === '';
+    if (!tanpaKomisi) {
+      var komisi = kosong ? desimal(b.komisiBaru) : p.komisi;
+      if (!(komisi >= 0) || komisi >= tarif) return ['bad', 'Komisi harus 0 sampai di bawah tarif'];
+    }
     if (b.cara === 'mirip') return ['amber', 'Nama mirip, pastikan benar'];
-    return ['green', 'Siap'];
+    // komisi kosong cuma peringatan: tetap bisa dicentang & dibuat tagihannya
+    if (tanpaKomisi) return ['amber', 'Komisi belum diisi', true];
+    return ['green', 'Siap', true];
   }
-  function bisaImpor(b) { return statusImpor(b)[0] === 'green'; }
+  function bisaImpor(b) { return statusImpor(b)[2] === true; }
   function kartuImpor(b) {
     var st = statusImpor(b), p = b.pabrik ? pabrikByKode(b.pabrik) : null;
     var pem = pemilikArmada().filter(function (o) { return b.pemilik[o.kode]; }).map(function (o) {
@@ -2584,6 +2624,10 @@
     if (p && (p.komisi === null || p.komisi === '')) {
       h += '<label class="lb">Komisi agen dari tabel Bapak (Rp/kg)</label><input class="in" data-imp-komisi="' + b.i + '" id="impKomisi-' + b.i +
         '" inputmode="decimal" value="' + esc(b.komisiBaru) + '" placeholder="isi 0 kalau tidak ada komisi">';
+      if (String(b.komisiBaru).trim() === '') {
+        h += '<div class="note warn small" style="margin-top:6px">Boleh dikosongkan dulu. Tagihannya tetap dibuat, hak pemilik dihitung tanpa komisi, ' +
+          'dan peringatannya terus muncul sampai komisinya diisi (di sini atau di menu Pabrik).</div>';
+      }
     }
     if (!b.cocok) h += '<div class="note bad small">Jumlah per pemilik tidak sama dengan kolom total di PDF. Cek PDF-nya, lalu catat lewat Tagihan manual.</div>';
     return h + '</div></div></div>';
@@ -2704,6 +2748,12 @@
     h += '<div class="card"><div class="row"><b>' + esc(t.namaPabrik) + ' · ' + bulanPendek(t.bulan) + '</b>' + bdgBayar(t) + '</div><div class="small muted">' +
       t.rit + ' rit · ' + ribu(t.kg) + ' kg' + (t.invoice ? ' · ' + esc(t.invoice) : '') + '</div><div class="baris"><span>Harus diterima</span><span class="n"><b>' +
       rp(t.harus) + '</b></span></div>' + (t.masuk ? '<div class="baris"><span>Sudah masuk sebelumnya</span><span class="n">' + rp(t.masuk) + '</span></div>' : '') + '</div>';
+    if (tgTanpaKomisi(t)) {
+      var pk = pabrikByKode(t.pabrik), bisaIsi = pk && !pk.komisiKosong && !t.masuk;
+      h += '<div class="note warn small" id="awasKomisiCair"><b>Komisi ' + esc(t.namaPabrik) + ' ' + (bisaIsi ? 'baru diisi' : 'belum diisi') + '.</b> ' +
+        (bisaIsi ? 'Waktu disimpan, tagihan ini otomatis memakai komisi ' + rpTarif(pk.komisi) + '/kg (angka di bawah masih tanpa komisi).' :
+          'Kalau disimpan sekarang, slip dihitung tanpa potongan komisi. Lebih aman minta Lala/Bapak isi komisinya dulu di menu Pabrik.') + '</div>';
+    }
     h += '<div class="card"><div class="grid2"><div><label class="lb" for="cTanggal">Tanggal uang masuk</label><input id="cTanggal" class="in" type="date" value="' +
       esc(F.tanggal) + '" max="' + S.hariIni + '"></div><div><label class="lb" for="cNominal">Nominal masuk</label><input id="cNominal" class="in uang besar" inputmode="numeric" value="' +
       esc(F.nominal) + '" placeholder="0"></div></div>';
@@ -3065,9 +3115,15 @@
 
   VIEWS.pabrik = function () {
     var h = kepala('Pabrik, tarif & komisi', 'lainnya', '<button class="btn sm" data-a="pabrikBaru">+ Baru</button>');
-    var n = { MASALAH: 0, CEK: 0 };
-    S.pabrik.forEach(function (p) { if (p.masalah) n.MASALAH++; else if (p.cekKomisi === 'Perlu dicek Bapak') n.CEK++; });
-    h += '<div class="chips">' + [['SEMUA', 'Semua'], ['MASALAH', 'Belum lengkap (' + n.MASALAH + ')'], ['CEK', 'Perlu dicek Bapak (' + n.CEK + ')']].map(function (c) {
+    var n = { MASALAH: 0, KOMISI: 0, CEK: 0 };
+    S.pabrik.forEach(function (p) {
+      if (p.masalah) n.MASALAH++;
+      else if (p.komisiKosong) n.KOMISI++;
+      else if (p.cekKomisi === 'Perlu dicek Bapak') n.CEK++;
+    });
+    h += peringatanKomisi();
+    h += '<div class="chips">' + [['SEMUA', 'Semua'], ['MASALAH', 'Belum lengkap (' + n.MASALAH + ')'], ['KOMISI', 'Komisi kosong (' + n.KOMISI + ')'],
+      ['CEK', 'Perlu dicek Bapak (' + n.CEK + ')']].map(function (c) {
       return '<button data-a="filterPabrik" data-v="' + c[0] + '" class="' + (filterPabrik === c[0] ? 'on' : '') + '">' + c[1] + '</button>';
     }).join('') + '</div>';
     h += '<input id="cariPabrik2" class="in" placeholder="Cari…" style="margin-bottom:10px"><div class="card" id="listPabrik"></div>';
@@ -3077,13 +3133,19 @@
     var q = ($('cariPabrik2') ? $('cariPabrik2').value : '').trim().toUpperCase();
     var d = S.pabrik.filter(function (p) {
       if (filterPabrik === 'MASALAH' && !p.masalah) return false;
-      if (filterPabrik === 'CEK' && (p.masalah || p.cekKomisi !== 'Perlu dicek Bapak')) return false;
+      if (filterPabrik === 'KOMISI' && (p.masalah || !p.komisiKosong)) return false;
+      if (filterPabrik === 'CEK' && (p.masalah || p.komisiKosong || p.cekKomisi !== 'Perlu dicek Bapak')) return false;
       return !q || p.nama.indexOf(q) >= 0;
     });
+    var nTg = {};
+    S.tagihan.filter(tgTanpaKomisi).forEach(function (t) { nTg[t.pabrik] = (nTg[t.pabrik] || 0) + 1; });
     $('listPabrik').innerHTML = d.length ? d.map(function (p) {
       return '<div class="item" data-a="pabrikEdit" data-v="' + p.kode + '"><div class="r1"><b>' + esc(p.nama) + '</b><span class="bdg ' + (p.jenis === 'SLUDGE' ? 'amber' : 'blue') + '">' +
-        p.jenis + '</span></div><div class="d">' + (p.masalah ? '<span style="color:var(--red);font-weight:700">' + esc(p.masalah) + '</span>' : 'Tarif ' + rpTarif(p.tarif) + ' · komisi ' +
-        rpTarif(p.komisi) + ' · pemilik ' + rpTarif(p.tarifPemilik) + '/kg') + (p.cekKomisi === 'Perlu dicek Bapak' && !p.masalah ? ' · <span style="color:var(--amber)">perlu dicek Bapak</span>' : '') +
+        p.jenis + '</span></div><div class="d">' + (p.masalah ? '<span style="color:var(--red);font-weight:700">' + esc(p.masalah) + '</span>' :
+        p.komisiKosong ? 'Tarif ' + rpTarif(p.tarif) + ' · <span style="color:var(--amber);font-weight:700">komisi belum diisi</span>' +
+          (nTg[p.kode] ? ' · ' + nTg[p.kode] + ' tagihan menunggu' : '') :
+        'Tarif ' + rpTarif(p.tarif) + ' · komisi ' + rpTarif(p.komisi) + ' · pemilik ' + rpTarif(p.tarifPemilik) + '/kg') +
+        (p.cekKomisi === 'Perlu dicek Bapak' && !p.masalah && !p.komisiKosong ? ' · <span style="color:var(--amber)">perlu dicek Bapak</span>' : '') +
         (p.aktif === 'TIDAK' ? ' · tidak aktif' : '') + '</div></div>';
     }).join('') : '<div class="kosong">Tidak ada.</div>';
   }
@@ -3105,7 +3167,8 @@
     h += '<label class="lb">Status komisi</label>' + seg('pbCek', [['Sudah dicek Bapak', 'Sudah dicek Bapak'], ['Perlu dicek Bapak', 'Perlu dicek']], p.cekKomisi);
     h += '<label class="lb">Aktif</label>' + seg('pbAktif', [['YA', 'Aktif'], ['TIDAK', 'Tidak aktif']], p.aktif || 'YA');
     h += '<label class="lb" for="pbCatatan">Catatan</label><textarea id="pbCatatan" class="in" rows="2">' + esc(p.catatan) + '</textarea>';
-    h += '<div class="note info small">Perubahan tarif/komisi hanya berlaku untuk tagihan baru. Tagihan yang sudah dibuat tetap memakai angka lamanya.</div>';
+    h += '<div class="note info small">Perubahan tarif/komisi hanya berlaku untuk tagihan baru. Tagihan yang sudah dibuat tetap memakai angka lamanya, ' +
+      'kecuali tagihan yang dibuat waktu komisinya masih kosong: begitu komisi diisi, tagihan itu ikut dihitung ulang (selama uangnya belum cair).</div>';
     h += '<div id="errPabrik" class="err"></div><button class="btn" data-a="simpanPabrik">Simpan</button></div>';
     return h;
   };
@@ -4400,6 +4463,7 @@
   A.filterTg = function (v) { filterTg = v; render(); };
   A.tabSlip = function (v) { tabSlip = v; render(); };
   A.filterPabrik = function (v) { filterPabrik = v; render(); };
+  A.filterPabrikBuka = function (v) { filterPabrik = v; buka('pabrik'); };
   A.tutupSheet = function () { tutupSheet(); };
   A.tutupSheetLuar = function (v, el, e) { if (e.target === $('sheet')) tutupSheet(); };
   A.tagihanDetail = function (id) { sheetTagihan(id); };
@@ -4416,7 +4480,7 @@
     bacaFormTagihan();
     var p = pabrikByKode(F.pabrik);
     F.ov = v === '1';
-    if (F.ov && p) { F.tarif = String(p.tarif).replace('.', ','); F.komisi = String(p.komisi).replace('.', ','); }
+    if (F.ov && p) { F.tarif = String(p.tarif).replace('.', ','); F.komisi = p.komisiKosong ? '' : String(p.komisi).replace('.', ','); }
     render();
   };
   A.simpanTagihan = function () {
@@ -4428,11 +4492,12 @@
     if (p.masalah) { err.textContent = p.masalah + '. Lengkapi dulu di menu Pabrik.'; return; }
     var rin = rincianForm();
     if (!rin.length) { err.textContent = 'Isi rit dan kg minimal satu pemilik.'; return; }
-    var t = hitungTagihan(p, rin, setKlien(), F.ov ? { tarif: desimal(F.tarif), komisi: desimal(F.komisi) } : {});
+    var t = hitungTagihan(p, rin, setKlien(), F.ov ? { tarif: desimal(F.tarif), komisi: String(F.komisi).trim() === '' ? null : desimal(F.komisi) } : {});
     var data = { id: F.edit, pabrik: F.pabrik, bulan: F.bulan, tglInvoice: F.tglInvoice, invoice: F.invoice, periode: F.periode, catatan: F.catatan,
       totalKontrabon: F.totalKontrabon, rincian: rin };
     if (F.ov) { data.tarif = F.tarif; data.komisi = F.komisi; }
-    dialog({ judul: F.edit ? 'Simpan perbaikan?' : 'Simpan tagihan?', isi: p.nama + ' · ' + namaBulan(F.bulan) + '\n' + t.rit + ' rit · ' + ribu(t.kg) + ' kg\nUang yang harus masuk ' + rp(t.harus),
+    dialog({ judul: F.edit ? 'Simpan perbaikan?' : 'Simpan tagihan?', isi: p.nama + ' · ' + namaBulan(F.bulan) + '\n' + t.rit + ' rit · ' + ribu(t.kg) + ' kg\nUang yang harus masuk ' + rp(t.harus) +
+      (t.komisi === null ? '\nKomisi belum diisi: hak pemilik dihitung tanpa komisi dulu.' : ''),
       ok: 'Simpan' }).then(function (ya) {
       if (!ya) return;
       panggil(F.edit ? 'perbaikiTagihan' : 'simpanTagihan', data).then(function (r) {
@@ -4483,7 +4548,9 @@
     });
     var rit = 0, kg = 0;
     pilih.forEach(function (b) { rit += b.rit; kg += b.kg; });
-    dialog({ judul: 'Buat ' + pilih.length + ' tagihan?', isi: 'Rekap ' + namaBulan(F.bulan) + '\n' + rit + ' rit · ' + ribu(kg) + ' kg\nFile PDF-nya ikut disimpan sebagai arsip.', ok: 'Buat tagihan' })
+    var tanpaKomisi = pilih.filter(function (b) { return statusImpor(b)[1] === 'Komisi belum diisi'; }).length;
+    dialog({ judul: 'Buat ' + pilih.length + ' tagihan?', isi: 'Rekap ' + namaBulan(F.bulan) + '\n' + rit + ' rit · ' + ribu(kg) + ' kg\nFile PDF-nya ikut disimpan sebagai arsip.' +
+      (tanpaKomisi ? '\n' + tanpaKomisi + ' pabrik komisinya belum diisi: dihitung tanpa komisi dulu, peringatannya tetap muncul sampai diisi.' : ''), ok: 'Buat tagihan' })
       .then(function (ya) {
         if (!ya) return;
         panggil('imporRekap', { bulan: F.bulan, namaFile: F.namaFile, fileBase64: F.b64, baris: baris }, 'Membuat tagihan…').then(function (r) {
@@ -4791,7 +4858,12 @@
     var d = { kode: F.pabrikKode, nama: $('pbNama').value, alias: $('pbAlias').value, namaKontrabon: $('pbKontrabon').value, jenis: nilaiSeg('pbJenis', p.jenis), tarif: $('pbTarif').value,
       komisi: $('pbKomisi').value, agen: $('pbAgen').value, ppn: nilaiSeg('pbPpn', p.ppn), pph: nilaiSeg('pbPph', p.pph), cekKomisi: nilaiSeg('pbCek', p.cekKomisi),
       aktif: nilaiSeg('pbAktif', p.aktif || 'YA'), catatan: $('pbCatatan').value };
-    panggil('simpanPabrik', d).then(function (r) { F = {}; buka('pabrik'); toast(r.pesan); })
+    panggil('simpanPabrik', d).then(function (r) {
+      F = {};
+      buka('pabrik');
+      if (r.pesan.length > 110) dialog({ judul: 'Tersimpan', isi: r.pesan, ok: 'Oke', tanpaBatal: true });
+      else toast(r.pesan);
+    })
       .catch(function (e) { $('errPabrik').textContent = e.message; });
   };
   A.simpanPotongan = function () {
