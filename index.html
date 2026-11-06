@@ -1832,7 +1832,7 @@
   function sapa(nama) { return /^mamah$/i.test(nama) ? 'Mah' : /^bapak$/i.test(nama) ? 'Pak' : nama; }
   function nPenyetuju() { return S.namaPenyetuju; }
   function nKeuangan() { return S.namaKeuangan; }
-  function isKeu() { return S.peran === 'KEUANGAN' || S.peran === 'ADMIN'; }
+  function isKeu() { return S.peran === 'KEUANGAN' || S.peran === 'TAGIHAN' || S.peran === 'ADMIN'; }
 
   // ================= suara & getar (disintesis Web Audio, tanpa berkas suara; bisa dimatikan di menu Lainnya)
   var SUARA = (function () {
@@ -2109,7 +2109,7 @@
   }
 
   var NAV = {
-    TAGIHAN: [['beranda', 'Beranda'], ['tagihan', 'Tagihan'], ['impor', 'Impor PDF'], ['lainnya', 'Lainnya']],
+    TAGIHAN: [['beranda', 'Beranda'], ['tagihan', 'Tagihan'], ['impor', 'Impor'], ['cair', 'Uang cair'], ['slip', 'Slip'], ['lainnya', 'Lainnya']],
     KEUANGAN: [['beranda', 'Beranda'], ['tagihan', 'Tagihan'], ['cair', 'Uang cair'], ['slip', 'Slip'], ['lainnya', 'Lainnya']],
     ADMIN: [['beranda', 'Beranda'], ['dasbor', 'Ringkasan'], ['tagihan', 'Tagihan'], ['slip', 'Slip'], ['lainnya', 'Lainnya']],
     PENYETUJU: [['beranda', 'Beranda'], ['setuju', 'Persetujuan'], ['dasbor', 'Ringkasan'], ['rekap', 'Rekap'], ['lainnya', 'Lainnya']],
@@ -2121,6 +2121,7 @@
   function indukView(v) {
     if (S.peran === 'PEMILIK') return { rawatForm: 'rawat', trukForm: 'garasi', gantiPin: 'lainnya' }[v];
     if (v === 'imporRit') return S.peran === 'TAGIHAN' ? 'impor' : 'lainnya';
+    if (v === 'pajakForm' && S.peran === 'TAGIHAN') return 'lainnya';
     if (['armada', 'garasi', 'uang', 'rawat', 'rawatForm', 'trukForm'].indexOf(v) >= 0) return 'lainnya';
     return INDUK[v];
   }
@@ -2236,14 +2237,8 @@
       var sudahRit = r.ritTerakhir && String(r.ritTerakhir) >= bulanLalu.replace('-', '');
       t.push(task('imporRit', sudahRit ? 'green' : 'blue', sudahRit ? '✓' : 1, 'Impor rit per truk ' + namaBulan(bulanLalu),
         r.ritTerakhir ? 'Terakhir: rit ' + namaBulan(r.ritTerakhir) + ' (dari PDF per nopol di Drive)' : 'PDF rit per nopol dari Drive, masuk ke garasi pemilik'));
-      t.push(task('tagihan', 'gray', r.tagihanBelum.n, 'Tagihan belum cair', r.tagihanBelum.n ? rp(r.tagihanBelum.total) +
-        (r.tagihanBelum.tertua ? ' · terlama ' + r.tagihanBelum.tertua.namaPabrik + ' (' + r.tagihanBelum.tertua.umur + ' hari)' : '') : 'Semua sudah cair'));
-      h.push('<div class="card" id="kartuTugas"><h2>Yang perlu dikerjakan</h2>' + t.join('') + '</div>');
-      h.push('<div class="dua" style="margin-bottom:12px"><button class="btn" data-a="nav" data-v="impor" id="btnImpor">Impor rekap PDF</button>' +
-        '<button class="btn ghost" data-a="nav" data-v="tagihanBaru" id="btnTagihanBaru">Tagihan manual</button></div>');
-      h.push('<div class="card"><h2>' + esc(r.bulanIni.nama) + '</h2><div class="kpi"><div><div class="l">Tagihan dicatat</div><div class="v">' +
-        r.tagihanBulanIni + '</div></div><div><div class="l">Belum cair</div><div class="v">' + rp(r.tagihanBelum.total) + '</div></div></div></div>');
-    } else {
+    }
+    {
       var mamah = p === 'PENYETUJU';
       if (!mamah) t.push(task('slip:DRAF', 'gray', r.draf.n, 'Slip baru, perlu dicek', r.draf.n ? r.draf.n + ' slip · ' + rp(r.draf.total) : 'Tidak ada'));
       t.push(task(mamah ? 'setuju' : 'slip:MENUNGGU', 'amber', r.menunggu.n, mamah ? 'Perlu ' + S.akun.nama + ' setujui' : 'Nunggu persetujuan ' + nPenyetuju(),
@@ -2254,7 +2249,11 @@
       t.push(task(mamah ? '' : 'tagihan', 'gray', r.tagihanBelum.n, 'Tagihan belum cair', r.tagihanBelum.n ? rp(r.tagihanBelum.total) +
         (r.tagihanBelum.tertua ? ' · terlama ' + r.tagihanBelum.tertua.namaPabrik + ' (' + r.tagihanBelum.tertua.umur + ' hari)' : '') : 'Semua sudah cair'));
       h.push('<div class="card" id="kartuTugas"><h2>Yang perlu dikerjakan</h2>' + t.join('') + '</div>');
-      if (!mamah) {
+      if (p === 'TAGIHAN') {
+        h.push('<div class="dua" style="margin-bottom:12px"><button class="btn" data-a="nav" data-v="impor" id="btnImpor">Impor rekap PDF</button>' +
+          '<button class="btn ghost" data-a="nav" data-v="tagihanBaru" id="btnTagihanBaru">Tagihan manual</button></div>');
+        h.push('<button class="btn ghost" data-a="nav" data-v="cair" id="btnCairBaru" style="margin-bottom:12px">+ Uang cair</button>');
+      } else if (!mamah) {
         h.push('<div class="dua" style="margin-bottom:12px"><button class="btn" data-a="nav" data-v="cair" id="btnCairBaru">+ Uang cair</button>' +
           '<button class="btn ghost" data-a="nav" data-v="tagihan" id="btnTagihanBaru">Tagihan</button></div>');
       } else if (r.menunggu.n) {
@@ -3077,12 +3076,10 @@
     if (S.peran === 'PEMILIK') return lainnyaPemilik();
     var h = kepala('Lainnya');
     var menu = [];
-    if (S.peran === 'TAGIHAN') {
-      menu.push(['pabrik', 'Pabrik, tarif & komisi']);
-    } else if (isKeu()) {
+    if (isKeu()) {
       if (S.peran === 'KEUANGAN') menu.push(['dasbor', 'Ringkasan keuangan RPS']);
       menu.push(['pajakForm', 'Catat setoran pajak']);
-      menu.push(['impor', 'Impor rekap PDF dari Lala']);
+      if (S.peran !== 'TAGIHAN') menu.push(['impor', 'Impor rekap PDF dari Lala']);
       menu.push(['pabrik', 'Pabrik, tarif & komisi']);
       menu.push(['potongan', 'Potongan & tambahan']);
       menu.push(['rekap', 'Rekap & laporan bulanan']);
@@ -3200,7 +3197,7 @@
 
   VIEWS.panduan = function () {
     var h = kepala('Panduan singkat', 'lainnya') + '<div class="card panduan">';
-    if (S.peran === 'TAGIHAN' || isKeu()) {
+    if (isKeu()) {
       h += '<h3>Tiap bulan, setelah rekap tarikan jadi</h3><ol><li>Menu <b>Impor PDF</b> → pilih file rekap dari Lala.</li>' +
         '<li>Cek hasil bacanya: hijau = siap, kuning = perlu dilengkapi (misal komisi dari tabel Bapak), abu-abu = sudah ada.</li>' +
         '<li>Tekan <b>Buat tagihan</b>. Tagihan yang tidak ada di rekap (misal invoice terpisah) dicatat lewat <b>Tagihan manual</b>.</li></ol>';
@@ -3442,9 +3439,11 @@
       ppnMasukan: p && p.ppnMasukan !== null && p.ppnMasukan !== undefined ? ribu(p.ppnMasukan) : '',
       tglBayar: p && p.tglBayar ? p.tglBayar : '', ntpn: p && p.ntpn ? p.ntpn : '', catatan: p && p.catatan && p.id ? p.catatan : '', nominalManual: !!(p && p.id) };
   }
+  /** Lala tidak punya Ringkasan, jadi form pajak kembali ke Lainnya. */
+  function balikPajak() { return S.peran === 'TAGIHAN' ? 'lainnya' : 'dasbor'; }
   VIEWS.pajakForm = function () {
     if (F.jenisForm !== 'pajak') mulaiFormPajak();
-    var h = kepala(F.id ? 'Ubah catatan pajak' : 'Catat setoran pajak', 'dasbor');
+    var h = kepala(F.id ? 'Ubah catatan pajak' : 'Catat setoran pajak', balikPajak());
     h += '<div class="card"><div class="muted small">Isi dari rekap pajak, billing, atau bukti bayar. Tanggal bayar dikosongkan kalau belum dibayar.</div>';
     h += '<div class="grid2"><div><label class="lb" for="pjMasa">Masa pajak</label><input id="pjMasa" class="in" type="month" value="' + esc(F.masa) + '" max="' + S.hariIni.slice(0, 7) +
       '"></div><div><label class="lb" for="pjJenis">Jenis</label><select id="pjJenis" class="in">' + S.set.jenisPajak.map(function (j) {
@@ -3848,8 +3847,8 @@
       esc(r.uraian) + '</b><b style="white-space:nowrap">' + (r.biaya ? rpRingkas(r.biaya) : '') + '</b></div><div class="d">' + tglIndo(r.tanggal) + ' · ' + esc(r.truk) +
       (r.bengkel ? ' · ' + esc(r.bengkel) : '') + '</div></div></div>';
   }
-  function bolehRawat() { return S.peran === 'PEMILIK' || S.peran === 'ADMIN' || S.peran === 'KEUANGAN'; }
-  function bolehUbahTruk() { return S.peran === 'PEMILIK' || S.peran === 'ADMIN' || S.peran === 'KEUANGAN'; }
+  function bolehRawat() { return S.peran === 'PEMILIK' || isKeu(); }
+  function bolehUbahTruk() { return S.peran === 'PEMILIK' || isKeu(); }
 
   function garasiSemua(g) {
     var truk = g.truk, bulanSemua = truk[0].bulanan.map(function (b) { return b.bulan; });
@@ -4103,7 +4102,7 @@
     }).catch(function (e) { toast(e.message, 'bad'); });
   }
   function bisaImporRit() { return ['ADMIN', 'KEUANGAN', 'TAGIHAN'].indexOf(S.peran) >= 0; }
-  function bisaUbahArmada() { return S.peran === 'ADMIN' || S.peran === 'KEUANGAN'; }
+  function bisaUbahArmada() { return isKeu(); }
   VIEWS.armada = function () {
     var h = kepala('Armada truk', 'lainnya', bisaUbahArmada() ? '<button class="btn sm" data-a="trukBaru" id="btnTrukBaru">+ Truk</button>' : '');
     if (!ARMADA) return h + '<div class="card kosong">Memuat armada…</div>';
@@ -4939,14 +4938,14 @@
     dialog({ judul: 'Simpan catatan pajak?', isi: F.jenis + ' masa ' + namaBulan(F.masa) + '\n' + (nominal ? rp(nominal) : 'Nominal dihitung dari PPN keluaran - masukan') + '\n' +
       (F.tglBayar ? 'Dibayar ' + tglIndo(F.tglBayar) : 'Belum dibayar'), ok: 'Simpan' }).then(function (ya) {
       if (!ya) return;
-      panggil('simpanPajak', data).then(function (r) { F = {}; buka('dasbor'); toast(r.pesan); })
+      panggil('simpanPajak', data).then(function (r) { F = {}; buka(balikPajak()); toast(r.pesan); })
         .catch(function (e) { err.textContent = e.message; });
     });
   };
   A.batalPajak = function (id) {
     dialog({ judul: 'Batalkan catatan pajak ini?', input: 'Alasannya', ok: 'Batalkan', bahaya: true }).then(function (alasan) {
       if (!alasan) return;
-      panggil('batalPajak', { id: id, alasan: alasan }).then(function (r) { F = {}; buka('dasbor'); toast(r.pesan); })
+      panggil('batalPajak', { id: id, alasan: alasan }).then(function (r) { F = {}; buka(balikPajak()); toast(r.pesan); })
         .catch(function (e) { toast(e.message, 'bad'); });
     });
   };
@@ -5049,7 +5048,7 @@
   A.rawatDetail = function (id) {
     var g = dataG(), r = g.rawat.filter(function (x) { return x.id === id; })[0];
     if (!r) return;
-    var bisaBatal = S.peran === 'ADMIN' || S.peran === 'KEUANGAN' || (S.peran === 'PEMILIK' && r.oleh === S.akun.nama);
+    var bisaBatal = isKeu() || (S.peran === 'PEMILIK' && r.oleh === S.akun.nama);
     var baris = [['Truk', r.truk], ['Tanggal', tglIndo(r.tanggal)], ['Jenis', labelRawat(r.jenis) + (r.tindakan ? ' · ' + labelTindakan(r.tindakan).toLowerCase() : '') +
       (r.posisi ? ' · ' + r.posisi.toLowerCase() : '')],
       ['Biaya', r.biaya ? rp(r.biaya) : '-'], ['Odometer', r.km ? ribu(r.km) + ' km' : '-'], ['Bengkel / toko', r.bengkel || '-'], ['Dicatat', r.oleh]];
@@ -5993,7 +5992,7 @@
     google.script.run.withSuccessHandler(function (d) {
       AKUN = d;
       var warna = { TAGIHAN: '#1D4F7A', KEUANGAN: '#A87400', PENYETUJU: '#8A3B12', ADMIN: '', DIREKSI: '#6B3FA0' };
-      var tugas = { TAGIHAN: 'tagihan & rit truk', KEUANGAN: 'uang cair & transfer', PENYETUJU: 'menyetujui slip', ADMIN: 'semua menu', DIREKSI: 'lihat ringkasan' };
+      var tugas = { TAGIHAN: 'tagihan, uang cair & transfer', KEUANGAN: 'uang cair & transfer', PENYETUJU: 'menyetujui slip', ADMIN: 'semua menu', DIREKSI: 'lihat ringkasan' };
       var kelola = d.filter(function (a) { return a.kelola !== false; });
       $('daftarAkun').innerHTML = kelola.length ? kelola.map(function (a) {
         return '<button class="akun" data-a="pilihAkun" data-v="' + esc(a.nama) + '" id="akun-' + esc(a.nama.replace(/\s+/g, '')) + '"><div class="av' +
